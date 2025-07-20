@@ -60,8 +60,15 @@ export default function SelectPlayers() {
 			return;
 		}
 
-		const playerObjects = trimmed.map((name) => ({ name })); // ✅ viktigt!
+		// const playerObjects = trimmed.map((name) => ({ name })); 
+		const playerObjects = trimmed.map((name) => ({
+			name,
+			scores: [],
+		}));
+		
 		setSession({ ...session, players: playerObjects });
+
+	
 
 		const gameId = session?.game?.id;
 		if (gameId === "chicago") {

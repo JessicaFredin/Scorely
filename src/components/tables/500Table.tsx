@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useGameSession } from "../../context/GameSessionContext";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
@@ -9,7 +9,8 @@ type Round = { value: number; crossed?: boolean };
 
 export default function Table500() {
 	const { session } = useGameSession();
-	const players = session?.players ?? [];
+	// const players = session?.players ?? [];
+	const players = useMemo(() => session?.players ?? [], [session?.players]);
 	const navigate = useNavigate();
 
 	const [winnerMessage, setWinnerMessage] = useState<string | null>(null);

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useGameSession } from "../../context/GameSessionContext";
 import { useNavigate } from "react-router-dom";
 import { jazzRounds } from "../../gameLogic/jazz";
@@ -9,7 +9,8 @@ import WinnerPopup from "../WinnerPopup";
 export default function JazzTable() {
 	const { session } = useGameSession();
 	const navigate = useNavigate();
-	const players = session?.players ?? [];
+	// const players = session?.players ?? [];
+	const players = useMemo(() => session?.players ?? [], [session?.players]);
 	const [winnerMessage, setWinnerMessage] = useState<string | null>(null);
 
 	const [results, setResults] = useState<number[][]>(

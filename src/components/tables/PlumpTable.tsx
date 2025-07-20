@@ -141,8 +141,8 @@ export default function PlumpTable() {
 									results[rowIdx][colIdx];
 								const isSuccess =
 									result !== null && guess === result;
-								const isFail =
-									result !== null && guess !== result;
+								// const isFail =
+								// 	result !== null && guess !== result;
 
 								return (
 									<div
