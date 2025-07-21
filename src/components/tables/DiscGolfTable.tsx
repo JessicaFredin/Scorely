@@ -103,7 +103,7 @@ export default function DiscgolfTable() {
 									<td key={playerIdx} className="border p-1">
 										<input
 											type="number"
-											className="w-full p-1 border rounded text-center"
+											className="w-full p-1 rounded text-center"
 											value={
 												scores[playerIdx][holeIdx] || ""
 											}
