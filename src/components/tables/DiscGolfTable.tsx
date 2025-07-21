@@ -83,7 +83,7 @@ export default function DiscgolfTable() {
 			<table className="table-fixed border border-black w-full max-w-4xl mx-auto text-sm">
 				<thead>
 					<tr>
-						<th className="border p-2 text-left w-24">Hål</th>
+						<th className="border p-2 text-left w-24">Namn</th>
 						{players.map((player, idx) => (
 							<th key={idx} className="border p-2">
 								{player.name}
