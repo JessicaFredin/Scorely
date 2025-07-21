@@ -13,8 +13,8 @@ export const games: Game[] = [
 			"Ett stickspel där man spelar i sju rundor med ökande antal kort. Poäng ges för stick och vissa kort.",
 	},
 	{
-		id: "minigolf",
-		name: "Minigolf",
+		id: "golf",
+		name: "Golf",
 		minPlayers: 1,
 		maxPlayers: 8,
 		hasRounds: true,
@@ -75,8 +75,18 @@ export const games: Game[] = [
 		hasRounds: true,
 		scoreType: "points",
 		category: "tärningsspel",
+		description: "Yatzy är ett tärningsspel",
+	},
+	{
+		id: "discgolf",
+		name: "Disc golf",
+		minPlayers: 1,
+		maxPlayers: 8,
+		hasRounds: true,
+		scoreType: "strokes",
+		category: "fritidsspel",
 		description:
-			"Yatzy är ett tärningsspel",
+			"Spelare går flera hål och försöker få bollen i mål med så få slag som möjligt. Lägst total vinner.",
 	},
 ];
 

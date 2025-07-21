@@ -81,6 +81,8 @@ export default function SelectPlayers() {
 			navigate("/game/jazz");
 		} else if (gameId === "trebeller") {
 			navigate("/game/trebeller");
+		} else if (gameId === "discgolf") {
+			navigate("/game/discgolf");
 		} else {
 			alert("Spelet stöds inte än.");
 		}

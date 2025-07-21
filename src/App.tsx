@@ -10,6 +10,7 @@ import FivehundredTable from "./components/tables/500Table";
 import PlumpTable from "./components/tables/PlumpTable";
 import JazzTable from "./components/tables/JazzTable";
 import TrebellerTable from "./components/tables/TrebellerTable";
+import DiscGolfTable from "./components/tables/DiscGolfTable";
 
 function App() {
 	return (
@@ -25,6 +26,7 @@ function App() {
 				<Route path="/game/plump" element={<PlumpTable />} />
 				<Route path="/game/jazz" element={<JazzTable />} />
 				<Route path="/game/trebeller" element={<TrebellerTable />} />
+				<Route path="/game/discgolf" element={<DiscGolfTable />} />
 				<Route path="*" element={<NotFound />} />
 			</Routes>
 		</BrowserRouter>

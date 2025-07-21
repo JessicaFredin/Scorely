@@ -33,7 +33,7 @@ export default function Home() {
 						onClick={() => setSelectedCategory("kortspel")}
 					/>
 					<Button
-						text="Minigolf"
+						text="Golf"
 						color="secondary"
 						onClick={() => setSelectedCategory("fritidsspel")}
 					/>
