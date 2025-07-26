@@ -137,6 +137,7 @@ type Props = {
 	roundIndex: number;
 	round: TrebellerRound;
 	players: string[];
+	rounds: TrebellerRound[];
 	onSubmit: (
 		roundIndex: number,
 		chosenBy: number,
@@ -146,10 +147,13 @@ type Props = {
 	onClose: () => void;
 };
 
+
+
 export default function ScorePopupTrebeller({
 	roundIndex,
 	round,
 	players,
+	rounds,
 	onSubmit,
 	onClose,
 }: Props) {
@@ -192,7 +196,7 @@ export default function ScorePopupTrebeller({
 
 				<div className="space-y-3 text-left mb-4">
 					<p className="font-medium text-sm">Vem valde rundan?</p>
-					{players.map((name, i) => (
+					{/* {players.map((name, i) => (
 						<label
 							key={i}
 							className="flex items-center gap-2 cursor-pointer"
@@ -205,7 +209,37 @@ export default function ScorePopupTrebeller({
 							/>
 							<span>{name}</span>
 						</label>
-					))}
+					))} */}
+
+					{players.map((name, i) => {
+						const alreadyChosen = rounds.some(
+							(r) =>
+								r.chosenBy === i &&
+								r.category === round.category
+						);
+
+						return (
+							<label
+								key={i}
+								className={`flex items-center gap-2 ${
+									alreadyChosen
+										? "opacity-50 cursor-not-allowed"
+										: "cursor-pointer"
+								}`}
+							>
+								<input
+									type="radio"
+									name="chooser"
+									checked={chosenBy === i}
+									disabled={alreadyChosen}
+									onChange={() =>
+										!alreadyChosen && setChosenBy(i)
+									}
+								/>
+								<span>{name}</span>
+							</label>
+						);
+					})}
 				</div>
 
 				<div className="space-y-3 text-left">

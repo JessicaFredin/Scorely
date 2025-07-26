@@ -71,7 +71,6 @@ export default function TrebellerTable() {
 				<span className="text-md font-medium">Tillbaka</span>
 			</button>
 
-	
 			{isGameOver && (
 				<WinnerPopup
 					message={`Spelet är slut! ${
@@ -171,6 +170,7 @@ export default function TrebellerTable() {
 						tricksTaken: [],
 					}}
 					players={players.map((p) => p.name)}
+					rounds={rounds} // 👈 Pass rounds here!
 					onSubmit={handleRoundSubmit}
 					onClose={() => setActiveCategory(null)}
 				/>
