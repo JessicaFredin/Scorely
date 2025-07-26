@@ -1,15 +1,16 @@
 import { useState } from "react";
 import { useGameSession } from "../../context/GameSessionContext";
 import { useNavigate } from "react-router-dom";
-import {
-	createInitialTrebellerRounds,
-	calculateTrebellerScores,
-	isCategoryFullyUsed,
+import { trebellerCategories } from "../../gameLogic/trebeller";
+import { createInitialTrebellerRounds } from "../../gameLogic/trebeller";
+import type {
+	TrebellerCategory,
+	TrebellerRound,
 } from "../../gameLogic/trebeller";
-import type { TrebellerRound } from "../../gameLogic/trebeller";
 
 import { ArrowLeft } from "lucide-react";
 import ScorePopupTrebeller from "../trebeller/ScorePopupTrebeller";
+import WinnerPopup from "../WinnerPopup";
 
 export default function TrebellerTable() {
 	const { session } = useGameSession();
@@ -18,9 +19,8 @@ export default function TrebellerTable() {
 	const [rounds, setRounds] = useState<TrebellerRound[]>(
 		createInitialTrebellerRounds()
 	);
-	const [activeRoundIndex, setActiveRoundIndex] = useState<number | null>(
-		null
-	);
+	const [activeCategory, setActiveCategory] =
+		useState<TrebellerCategory | null>(null);
 
 	if (players.length !== 3) {
 		return (
@@ -31,34 +31,35 @@ export default function TrebellerTable() {
 	}
 
 	const handleRoundSubmit = (
-		roundIndex: number,
+		_: number,
 		chosenBy: number,
-		tricksTaken: number[]
+		tricksTaken: number[],
+		scores: number[]
 	) => {
-		const newRounds = [...rounds];
-		const scores = calculateTrebellerScores(tricksTaken, chosenBy);
+		if (!activeCategory) return;
 
-		newRounds[roundIndex] = {
-			...newRounds[roundIndex],
+		const newRound: TrebellerRound = {
+			category: activeCategory,
 			chosenBy,
 			tricksTaken,
 			scores,
 		};
 
-		setRounds(newRounds);
-		setActiveRoundIndex(null);
+		setRounds([...rounds, newRound]);
+		setActiveCategory(null);
 	};
 
-	const scoreLog: string[][] = players.map(() => []);
+	const scoreLog: string[][] = players.map(() => [] as string[]);
 	rounds.forEach((round) => {
 		round.scores.forEach((score, idx) => {
-			if (round.chosenBy !== null)
-				scoreLog[idx].push(score >= 0 ? `+${score}` : `${score}`);
+			scoreLog[idx].push(score >= 0 ? `+${score}` : `${score}`);
 		});
 	});
 
 	const calculateTotal = (playerIdx: number) =>
 		rounds.reduce((sum, r) => sum + (r.scores[playerIdx] ?? 0), 0);
+
+	const isGameOver = rounds.length >= 18;
 
 	return (
 		<div className="px-4 py-6">
@@ -69,6 +70,22 @@ export default function TrebellerTable() {
 				<ArrowLeft size={24} />
 				<span className="text-md font-medium">Tillbaka</span>
 			</button>
+
+	
+			{isGameOver && (
+				<WinnerPopup
+					message={`Spelet är slut! ${
+						players[
+							calculateTotal(0) > calculateTotal(1) &&
+							calculateTotal(0) > calculateTotal(2)
+								? 0
+								: calculateTotal(1) > calculateTotal(2)
+								? 1
+								: 2
+						].name
+					} vann!`}
+				/>
+			)}
 
 			<div className="overflow-x-auto bg-white rounded shadow">
 				<div className="min-w-[600px]">
@@ -86,36 +103,37 @@ export default function TrebellerTable() {
 						))}
 					</div>
 
-					{rounds.map((round, rowIdx) => (
+					{trebellerCategories.map((cat, rowIdx) => (
 						<div
 							key={rowIdx}
 							className="flex border-b border-black h-12"
 						>
 							<div
-								className={`w-32 border-r border-black flex items-center justify-center cursor-pointer hover:bg-gray-100 text-sm text-center ${
-									isCategoryFullyUsed(rounds, round.category)
-										? "text-gray-400 cursor-default"
-										: ""
-								}`}
+								className={`w-32 border-r border-black flex items-center justify-center cursor-pointer hover:bg-gray-100 text-sm text-center`}
 								onClick={() => {
 									if (
-										!isCategoryFullyUsed(
-											rounds,
-											round.category
-										)
+										!isGameOver &&
+										rounds.filter((r) => r.category === cat)
+											.length < 3
 									) {
-										setActiveRoundIndex(rowIdx);
+										setActiveCategory(cat);
 									}
 								}}
 							>
-								{round.category}
+								{cat}
 							</div>
 							{players.map((_, colIdx) => (
 								<div
 									key={colIdx}
 									className="min-w-[100px] border-r border-black flex items-center justify-center text-xl"
 								>
-									{round.chosenBy === colIdx ? "✗" : ""}
+									{rounds.some(
+										(r) =>
+											r.category === cat &&
+											r.chosenBy === colIdx
+									)
+										? "✗"
+										: ""}
 								</div>
 							))}
 						</div>
@@ -143,13 +161,18 @@ export default function TrebellerTable() {
 				</div>
 			</div>
 
-			{activeRoundIndex !== null && (
+			{activeCategory && (
 				<ScorePopupTrebeller
-					roundIndex={activeRoundIndex}
-					round={rounds[activeRoundIndex]}
+					roundIndex={-1}
+					round={{
+						category: activeCategory,
+						chosenBy: -1,
+						scores: [],
+						tricksTaken: [],
+					}}
 					players={players.map((p) => p.name)}
 					onSubmit={handleRoundSubmit}
-					onClose={() => setActiveRoundIndex(null)}
+					onClose={() => setActiveCategory(null)}
 				/>
 			)}
 		</div>

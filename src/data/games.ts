@@ -16,7 +16,7 @@ export const games: Game[] = [
 		id: "golf",
 		name: "Golf",
 		minPlayers: 1,
-		maxPlayers: 8,
+		maxPlayers: 6,
 		hasRounds: true,
 		scoreType: "strokes",
 		category: "fritidsspel",
@@ -79,14 +79,25 @@ export const games: Game[] = [
 	},
 	{
 		id: "discgolf",
-		name: "Disc golf",
+		name: "Discgolf",
 		minPlayers: 1,
-		maxPlayers: 8,
+		maxPlayers: 6,
 		hasRounds: true,
 		scoreType: "strokes",
 		category: "fritidsspel",
 		description:
 			"Spelare går flera hål och försöker få bollen i mål med så få slag som möjligt. Lägst total vinner.",
+	},
+	{
+		id: "10000",
+		name: "10000",
+		minPlayers: 2,
+		maxPlayers: 6,
+		hasRounds: true,
+		scoreType: "points",
+		category: "tärningsspel",
+		description:
+			"Spelare ska försöka få 10000 poäng, men man måste få minst 1000 poäng för att hamna på pappret.",
 	},
 ];
 

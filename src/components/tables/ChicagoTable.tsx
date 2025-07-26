@@ -26,17 +26,13 @@ export default function ChicagoTable() {
 		number | null
 	>(null);
 
-
-
 	useEffect(() => {
 		players.forEach((player, i) => {
 			const netScore = scores[i] - strikedScores[i];
 			const chicagoCount = chicagoCounts[i];
 
 			if (netScore >= 47) {
-				setWinnerMessage(
-					`${player.name} har köpstopp!`
-				);
+				setWinnerMessage(`${player.name} har köpstopp!`);
 				setTimeout(() => setWinnerMessage(null), 5000);
 			}
 
@@ -48,9 +44,6 @@ export default function ChicagoTable() {
 			}
 		});
 	}, [scores, strikedScores, chicagoCounts, players]);
-	
-
-
 
 	const handleScore = (points: number, id?: string) => {
 		if (selectedPlayerIndex === null) return;
@@ -71,7 +64,6 @@ export default function ChicagoTable() {
 
 		setSelectedPlayerIndex(null);
 	};
-	
 
 	const handleSayChicago = () => {
 		if (selectedPlayerIndex === null) return;
@@ -186,16 +178,19 @@ export default function ChicagoTable() {
 				// />
 
 				<ScorePopupChicago
-	playerName={players[selectedPlayerIndex].name}
-	currentScore={scores[selectedPlayerIndex]}
-	strikedScore={strikedScores[selectedPlayerIndex]} // 👈 Ny prop
-	onSelect={handleScore}
-	onSayChicago={handleSayChicago}
-	onMissChicago={handleMissedChicago}
-	onClose={() => setSelectedPlayerIndex(null)}
-	canSayChicago={scores[selectedPlayerIndex] - strikedScores[selectedPlayerIndex] >= 15}
-/>
-
+					playerName={players[selectedPlayerIndex].name}
+					currentScore={scores[selectedPlayerIndex]}
+					strikedScore={strikedScores[selectedPlayerIndex]} // 👈 Ny prop
+					onSelect={handleScore}
+					onSayChicago={handleSayChicago}
+					onMissChicago={handleMissedChicago}
+					onClose={() => setSelectedPlayerIndex(null)}
+					canSayChicago={
+						scores[selectedPlayerIndex] -
+							strikedScores[selectedPlayerIndex] >=
+						15
+					}
+				/>
 			)}
 		</div>
 	);

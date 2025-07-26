@@ -46,12 +46,19 @@
 // export default DiscGolfTable;
 
 
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useGameSession } from "../../context/GameSessionContext";
+import { useNavigate } from "react-router-dom";
+import WinnerPopup from "../WinnerPopup";
+import { ArrowLeft } from "lucide-react";
 
 export default function DiscgolfTable() {
 	const { session } = useGameSession();
-	const players = session?.players ?? [];
+	// const players = session?.players ?? [];
+	const players = useMemo(() => session?.players ?? [], [session?.players]);
+	const navigate = useNavigate();
+	const [winnerMessage, setWinnerMessage] = useState<string | null>(null);
+	
 
 	const holeCount = 18;
 	const [scores, setScores] = useState<number[][]>(
@@ -72,18 +79,46 @@ export default function DiscgolfTable() {
 	const getTotal = (playerIndex: number) =>
 		scores[playerIndex].reduce((sum, val) => sum + val, 0);
 
+
+
+	// useEffect(() => {
+	// 	players.forEach((player, i) => {
+	// 		const score = scores[i];
+
+	// 		if (player.scores > 63) {
+	// 			setWinnerMessage(`${player.name} har vunnit spelet: ${score}`);
+	// 			setTimeout(() => setWinnerMessage(null), 5000);
+	// 		}
+	// 	});
+	// }, [scores, players]);
+
+
+
 	if (!session?.game || players.length === 0) {
 		return <p className="text-center mt-10">Ingen speldata tillgänglig.</p>;
 	}
 
+	
+
 	return (
 		<section className="overflow-x-auto px-4 py-8">
-			<h2 className="text-2xl font-bold mb-6 text-center">Discgolf</h2>
+	
+
+			<div className="mb-4">
+				<button
+					onClick={() => navigate(-1)}
+					className="text-gray-600 hover:text-black flex items-center gap-2"
+				>
+					<ArrowLeft size={24} />
+					<span className="text-md font-medium">Tillbaka</span>
+				</button>
+				{winnerMessage && <WinnerPopup message={winnerMessage} />}
+			</div>
 
 			<table className="table-fixed border border-black w-full max-w-4xl mx-auto text-sm">
 				<thead>
 					<tr>
-						<th className="border p-2 text-left w-24">Namn</th>
+						<th className="border p-2 text-left w-24">Discgolf</th>
 						{players.map((player, idx) => (
 							<th key={idx} className="border p-2">
 								{player.name}

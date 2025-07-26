@@ -83,6 +83,8 @@ export default function SelectPlayers() {
 			navigate("/game/trebeller");
 		} else if (gameId === "discgolf") {
 			navigate("/game/discgolf");
+		} else if (gameId === "10000") {
+			navigate("/game/10000");
 		} else {
 			alert("Spelet stöds inte än.");
 		}
