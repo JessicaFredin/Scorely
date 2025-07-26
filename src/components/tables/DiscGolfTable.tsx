@@ -45,8 +45,7 @@
 
 // export default DiscGolfTable;
 
-
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { useGameSession } from "../../context/GameSessionContext";
 import { useNavigate } from "react-router-dom";
 import WinnerPopup from "../WinnerPopup";
@@ -57,8 +56,7 @@ export default function DiscgolfTable() {
 	// const players = session?.players ?? [];
 	const players = useMemo(() => session?.players ?? [], [session?.players]);
 	const navigate = useNavigate();
-	const [winnerMessage, setWinnerMessage] = useState<string | null>(null);
-	
+	const [winnerMessage, _] = useState<string | null>(null);
 
 	const holeCount = 18;
 	const [scores, setScores] = useState<number[][]>(
@@ -79,8 +77,6 @@ export default function DiscgolfTable() {
 	const getTotal = (playerIndex: number) =>
 		scores[playerIndex].reduce((sum, val) => sum + val, 0);
 
-
-
 	// useEffect(() => {
 	// 	players.forEach((player, i) => {
 	// 		const score = scores[i];
@@ -92,18 +88,12 @@ export default function DiscgolfTable() {
 	// 	});
 	// }, [scores, players]);
 
-
-
 	if (!session?.game || players.length === 0) {
 		return <p className="text-center mt-10">Ingen speldata tillgänglig.</p>;
 	}
 
-	
-
 	return (
 		<section className="overflow-x-auto px-4 py-8">
-	
-
 			<div className="mb-4">
 				<button
 					onClick={() => navigate(-1)}
