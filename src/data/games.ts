@@ -19,7 +19,7 @@ export const games: Game[] = [
 		maxPlayers: 6,
 		hasRounds: true,
 		scoreType: "strokes",
-		category: "fritidsspel",
+		category: "golf",
 		description:
 			"Spelare går flera hål och försöker få bollen i mål med så få slag som möjligt. Lägst total vinner.",
 	},
@@ -84,7 +84,7 @@ export const games: Game[] = [
 		maxPlayers: 6,
 		hasRounds: true,
 		scoreType: "strokes",
-		category: "fritidsspel",
+		category: "golf",
 		description:
 			"Spelare går flera hål och försöker få bollen i mål med så få slag som möjligt. Lägst total vinner.",
 	},

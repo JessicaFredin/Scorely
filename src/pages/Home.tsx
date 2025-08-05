@@ -3,8 +3,11 @@ import type { Game } from "../types/game";
 import { useState } from "react";
 import GameList from "../components/GameList";
 import Button from "../components/Button";
+import { useNavigate } from "react-router-dom";
 
 export default function Home() {
+	const navigate = useNavigate();
+
 	const [selectedCategory, setSelectedCategory] = useState<
 		null | Game["category"]
 	>(null);
@@ -35,17 +38,27 @@ export default function Home() {
 					<Button
 						text="Golf"
 						color="secondary"
-						onClick={() => setSelectedCategory("fritidsspel")}
+						onClick={() => setSelectedCategory("golf")}
 					/>
 					<Button
 						text="Tärningsspel"
 						color="danger"
 						onClick={() => setSelectedCategory("tärningsspel")}
 					/>
-				</div>
-			
 
-				{selectedCategory && <GameList games={filteredGames} category={selectedCategory} />}
+					<Button
+						text="Se sparade protokoll"
+						color="primary"
+						onClick={() => navigate("/saved-protocols")}
+					/>
+				</div>
+
+				{selectedCategory && (
+					<GameList
+						games={filteredGames}
+						category={selectedCategory}
+					/>
+				)}
 			</div>
 		</section>
 	);

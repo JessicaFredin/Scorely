@@ -3,11 +3,7 @@ import { createContext, useContext, useState } from "react";
 import type { ReactNode } from "react";
 
 import type { Game } from "../types/game";
-
-type Player = {
-	name: string;
-	scores: number[]; // kan vara poäng per runda eller total
-};
+import type { Player } from "../types/player";
 
 type GameSession = {
 	game: Game;
