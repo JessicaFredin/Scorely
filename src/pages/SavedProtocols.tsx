@@ -215,10 +215,30 @@ import { ArrowLeft, CalendarDays, Trash2, Users, Trophy } from "lucide-react";
 import { ProtocolService } from "../services/ProtocolService";
 import type { SavedProtocol } from "../types/savedProtocol";
 
+// function getPlayerTotal(protocol: SavedProtocol, playerIndex: number) {
+// 	return protocol.values.reduce((sum, row) => {
+// 		const value = row[playerIndex];
+// 		return sum + (typeof value === "number" ? value : 0);
+// 	}, 0);
+// }
+
+function decodeProtocolScore(
+	protocol: SavedProtocol,
+	value: SavedProtocol["values"][number][number],
+) {
+	if (value === "" || typeof value !== "number") return 0;
+
+	if (protocol.gameType === "plump") {
+		if (value >= 200) return 0;
+		if (value >= 100) return 10 + (value - 100);
+	}
+
+	return value;
+}
+
 function getPlayerTotal(protocol: SavedProtocol, playerIndex: number) {
 	return protocol.values.reduce((sum, row) => {
-		const value = row[playerIndex];
-		return sum + (typeof value === "number" ? value : 0);
+		return sum + decodeProtocolScore(protocol, row[playerIndex]);
 	}, 0);
 }
 

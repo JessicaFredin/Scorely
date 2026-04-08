@@ -573,16 +573,17 @@ import { useNavigate } from "react-router-dom";
 import ScorecardLayout from "../components/scorecard/ScorecardLayout";
 import { useGameSession } from "../context/GameSessionContext";
 import { protocolRegistry } from "../data/protocolRegistry";
-import {
-	ProtocolService,
-	type SavedProtocol,
-	type ScoreCellValue,
-} from "../services/ProtocolService";
+import { ProtocolService } from "../services/ProtocolService";
+import type { SavedProtocol } from "../types/savedProtocol";
+
+type ScoreCellValue = number | "";
 
 type ToastMessage = {
 	id: number;
 	text: string;
 };
+
+const emptyPlayers: { name: string; scores: number[] }[] = [];
 
 function cloneValues(values: ScoreCellValue[][]) {
 	return values.map((row) => [...row]);
@@ -632,12 +633,89 @@ function getChicagoWinner(
 	return null;
 }
 
+function getFiveHundredWinner(
+	players: { name: string }[],
+	values: ScoreCellValue[][],
+) {
+	for (let i = 0; i < players.length; i++) {
+		const total = getPlayerTotal(values, i);
+
+		if (total >= 500) {
+			return {
+				name: players[i].name,
+				message: `Grattis! ${players[i].name} har vunnit spelet, ${total} poäng.`,
+			};
+		}
+	}
+
+	return null;
+}
+
+function decodePlumpValue(value: ScoreCellValue) {
+	if (value === "" || typeof value !== "number") return null;
+
+	if (value >= 200) {
+		const bid = value - 200;
+		return {
+			bid,
+			plump: true,
+			points: 0,
+		};
+	}
+
+	if (value >= 100) {
+		const bid = value - 100;
+		return {
+			bid,
+			plump: false,
+			points: 10 + bid,
+		};
+	}
+
+	return {
+		bid: 0,
+		plump: false,
+		points: value,
+	};
+}
+
+function getPlumpWinner(
+	players: { name: string }[],
+	values: ScoreCellValue[][],
+) {
+	const allFilled = values.every((row) => row.every((cell) => cell !== ""));
+
+	if (!allFilled) return null;
+
+	const totals = players.map((_, playerIndex) =>
+		values.reduce((sum, row) => {
+			const decoded = decodePlumpValue(row[playerIndex]);
+			return sum + (decoded ? decoded.points : 0);
+		}, 0),
+	);
+
+	const highestScore = Math.max(...totals);
+	const winnerIndices = totals
+		.map((score, index) => ({ score, index }))
+		.filter((item) => item.score === highestScore)
+		.map((item) => item.index);
+
+	if (winnerIndices.length === 1) {
+		const winnerName = players[winnerIndices[0]].name;
+
+		return {
+			name: winnerName,
+			message: `Grattis! ${winnerName} har vunnit spelet med ${highestScore} poäng.`,
+		};
+	}
+}
+
 export default function ScorecardPage() {
 	const { session } = useGameSession();
 	const navigate = useNavigate();
 
 	const game = session?.game;
-	const players = session?.players ?? [];
+	const players = session?.players ?? emptyPlayers;
 
 	const gameId = String(game?.id ?? "").toLowerCase();
 	const protocolEntry = protocolRegistry[gameId];
@@ -671,16 +749,24 @@ export default function ScorecardPage() {
 	const toastIdRef = useRef(0);
 	const announcedWinnerRef = useRef("");
 
-	const playerTotals = useMemo(
-		() => players.map((_, index) => getPlayerTotal(values, index)),
-		[players, values],
-	);
+	// const playerTotals = useMemo(
+	// 	() => players.map((_, index) => getPlayerTotal(values, index)),
+	// 	[players, values],
+	// );
 
 	const winner = useMemo(() => {
 		if (!game || players.length === 0) return null;
 
 		if (gameId === "chicago") {
 			return getChicagoWinner(players, values);
+		}
+
+		if (gameId === "500") {
+			return getFiveHundredWinner(players, values);
+		}
+
+		if (gameId === "plump") {
+			return getPlumpWinner(players, values);
 		}
 
 		return null;
