@@ -12,7 +12,7 @@ import SelectPlayers from "./pages/SelectPlayers";
 // import TrebellerTable from "./components/tables/TrebellerTable";
 // import DiscGolfTable from "./components/tables/DiscGolfTable";
 // import Table10000 from "./components/tables/10000Table";
-import ResumeGame from "./components/ResumeGame";
+// import ResumeGame from "./components/ResumeGame";
 import SavedProtocols from "./pages/SavedProtocols";
 import ResumeProtocol from "./pages/ResumeProtocol";
 import ScorecardPage from "./pages/ScorecardPage";
@@ -33,7 +33,7 @@ function App() {
 				<Route path="/game/trebeller" element={<TrebellerTable />} />
 				<Route path="/game/discgolf" element={<DiscGolfTable />} />
 				<Route path="/game/10000" element={<Table10000 />} /> */}
-				<Route path="/resume/:game/:id" element={<ResumeGame />} />
+				{/* <Route path="/resume/:game/:id" element={<ResumeGame />} /> */}
 				<Route path="/saved-protocols" element={<SavedProtocols />} />
 				<Route
 					path="/resume-protocol/:id"
