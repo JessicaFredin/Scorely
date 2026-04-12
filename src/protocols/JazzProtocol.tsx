@@ -25,7 +25,6 @@ type JazzProtocolProps = {
 
 type CounterRoundKey = "pass" | "clubs" | "queens" | "play" | "seven";
 type SingleSelectRoundKey = "king-of-clubs" | "last-trick";
-type RoundKey = CounterRoundKey | SingleSelectRoundKey;
 
 type CounterRound = {
 	key: CounterRoundKey;
@@ -265,7 +264,7 @@ export default function JazzProtocol({
 				currentCounterSum === currentCounterTarget
 			: false;
 
-	const canIncreaseCounter = (playerIndex: number) => {
+	const canIncreaseCounter = () => {
 		if (!modal || modal.type !== "counter") return false;
 		if (currentCounterTarget === null) return true;
 		return currentCounterSum < currentCounterTarget;
@@ -567,14 +566,10 @@ export default function JazzProtocol({
 															)
 														}
 														disabled={
-															!canIncreaseCounter(
-																playerIndex,
-															)
+															!canIncreaseCounter()
 														}
 														className={`flex h-12 w-12 items-center justify-center rounded-full text-slate-900 transition ${
-															canIncreaseCounter(
-																playerIndex,
-															)
+															canIncreaseCounter()
 																? "bg-[#dfe9e3] hover:bg-[#d3dfd8]"
 																: "bg-[#edf3ef] text-slate-300"
 														}`}

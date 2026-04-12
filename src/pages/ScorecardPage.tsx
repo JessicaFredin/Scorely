@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ScorecardLayout from "../components/scorecard/ScorecardLayout";
 import { useGameSession } from "../context/GameSessionContext";
@@ -138,6 +138,8 @@ function getPlumpWinner(
 			message: `Grattis! ${winnerName} har vunnit spelet med ${highestScore} poäng.`,
 		};
 	}
+
+	return null;
 }
 
 function getLowestScoreWinner(
@@ -258,13 +260,17 @@ function getTrebellerWinner(
 
 		return {
 			name: winnerName,
-			message: `Grattis! ${winnerName} har vunnit spelet med ${highestScore > 0 ? `+${highestScore}` : highestScore} poäng.`,
+			message: `Grattis! ${winnerName} har vunnit spelet med ${
+				highestScore > 0 ? `+${highestScore}` : highestScore
+			} poäng.`,
 		};
 	}
 
 	return {
 		name: null,
-		message: `Spelet slutade oavgjort på ${highestScore > 0 ? `+${highestScore}` : highestScore} poäng.`,
+		message: `Spelet slutade oavgjort på ${
+			highestScore > 0 ? `+${highestScore}` : highestScore
+		} poäng.`,
 	};
 }
 
@@ -310,11 +316,6 @@ export default function ScorecardPage() {
 	const hasLoadedInitialValuesRef = useRef(false);
 	const hasUserMadeChangeRef = useRef(false);
 
-	// const playerTotals = useMemo(
-	// 	() => players.map((_, index) => getPlayerTotal(values, index)),
-	// 	[players, values],
-	// );
-
 	const winner = useMemo(() => {
 		if (!game || players.length === 0) return null;
 
@@ -358,43 +359,67 @@ export default function ScorecardPage() {
 		}, 2600);
 	};
 
-	const buildSavedProtocol = (
-		nextValues: ScoreCellValue[][],
-		statusOverride?: "Pågående" | "Avslutad",
-		winnerNameOverride?: string | null,
-	): SavedProtocol | null => {
-		if (!game) return null;
+	const buildSavedProtocol = useCallback(
+		(
+			nextValues: ScoreCellValue[][],
+			statusOverride?: "Pågående" | "Avslutad",
+			winnerNameOverride?: string | null,
+		): SavedProtocol | null => {
+			if (!game) return null;
 
-		const resolvedWinner =
-			gameId === "chicago" ? getChicagoWinner(players, nextValues) : null;
+			let resolvedWinner:
+				| ReturnType<typeof getChicagoWinner>
+				| ReturnType<typeof getFiveHundredWinner>
+				| ReturnType<typeof getPlumpWinner>
+				| ReturnType<typeof getLowestScoreWinner>
+				| ReturnType<typeof getHighestScoreWinner>
+				| ReturnType<typeof getTrebellerWinner>
+				| null = null;
 
-		return {
-			id: protocolIdRef.current,
-			gameId: String(game.id),
-			gameName: game.name,
-			gameType: game.id as SavedProtocol["gameType"],
-			category: game.category,
-			players: players.map((player) => ({ name: player.name })),
-			values: cloneValues(nextValues),
-			createdAt: createdAtRef.current,
-			updatedAt: new Date().toISOString(),
-			status:
-				statusOverride ?? (resolvedWinner ? "Avslutad" : "Pågående"),
-			winnerName:
-				winnerNameOverride !== undefined
-					? winnerNameOverride
-					: (resolvedWinner?.name ?? null),
-			route: `/game/${String(game.id).toLowerCase()}`,
-		};
-	};
+			if (gameId === "chicago") {
+				resolvedWinner = getChicagoWinner(players, nextValues);
+			} else if (gameId === "500") {
+				resolvedWinner = getFiveHundredWinner(players, nextValues);
+			} else if (gameId === "plump") {
+				resolvedWinner = getPlumpWinner(players, nextValues);
+			} else if (gameId === "golf" || gameId === "discgolf") {
+				resolvedWinner = getLowestScoreWinner(players, nextValues);
+			} else if (gameId === "jazz") {
+				resolvedWinner = getHighestScoreWinner(players, nextValues);
+			} else if (gameId === "trebeller") {
+				resolvedWinner = getTrebellerWinner(players, nextValues);
+			}
+
+			return {
+				id: protocolIdRef.current,
+				gameId: String(game.id),
+				gameName: game.name,
+				gameType: game.id as SavedProtocol["gameType"],
+				category: game.category,
+				players: players.map((player) => ({ name: player.name })),
+				values: cloneValues(nextValues),
+				createdAt: createdAtRef.current,
+				updatedAt: new Date().toISOString(),
+				status:
+					statusOverride ??
+					(resolvedWinner ? "Avslutad" : "Pågående"),
+				winnerName:
+					winnerNameOverride !== undefined
+						? winnerNameOverride
+						: (resolvedWinner?.name ?? null),
+				route: `/game/${String(game.id).toLowerCase()}`,
+			};
+		},
+		[game, gameId, players],
+	);
 
 	useEffect(() => {
 		if (!game || !protocolEntry || players.length === 0) {
 			setValues([]);
 			setHistory([]);
 			announcedWinnerRef.current = "";
-				hasLoadedInitialValuesRef.current = true;
-				hasUserMadeChangeRef.current = false;
+			hasLoadedInitialValuesRef.current = true;
+			hasUserMadeChangeRef.current = false;
 			return;
 		}
 
@@ -477,10 +502,11 @@ export default function ScorecardPage() {
 			"Avslutad",
 			winner?.name ?? null,
 		);
+
 		if (protocol) {
 			ProtocolService.save(protocol);
 		}
-	}, [winnerMessage, winner, values]);
+	}, [buildSavedProtocol, winnerMessage, winner, values]);
 
 	if (!game || players.length === 0) {
 		return (

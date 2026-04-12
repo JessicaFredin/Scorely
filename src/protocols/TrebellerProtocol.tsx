@@ -209,7 +209,6 @@ function getRemainingTricks(tricksTaken: number[]) {
 }
 
 export default function TrebellerProtocol({
-	gameName: _gameName,
 	players,
 	values,
 	onChange,
