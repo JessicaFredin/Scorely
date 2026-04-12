@@ -88,7 +88,7 @@ export const protocolRegistry: Record<string, ProtocolEntry> = {
 	},
 	trebeller: {
 		component: TrebellerProtocol,
-		createInitialValues: (playerCount) => createMatrix(6, playerCount),
+		createInitialValues: (playerCount) => createMatrix(18, playerCount),
 	},
 	yatzy: {
 		component: YatzyProtocol,

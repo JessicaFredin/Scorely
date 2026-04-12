@@ -310,13 +310,13 @@ export default function PlumpProtocol({
 				>
 					<div className="grid grid-cols-[76px_repeat(var(--players),minmax(110px,1fr))] bg-[#e7f1eb]">
 						<div className="border-b border-r border-[#d8e3dc] px-3 py-4 text-sm font-black uppercase tracking-[0.08em] text-slate-800">
-							Kort
+							Plump
 						</div>
 
 						{players.map((player) => (
 							<div
 								key={player.name}
-								className="border-b border-[#d8e3dc] px-3 py-4 text-center text-sm font-black uppercase tracking-[0.08em] text-slate-800"
+								className="border-b border-[#d8e3dc] px-3 py-4 text-center text-sm font-black tracking-[0.08em] text-slate-800"
 							>
 								{player.name}
 							</div>

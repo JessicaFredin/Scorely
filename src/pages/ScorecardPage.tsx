@@ -1,573 +1,3 @@
-// // import { useEffect, useMemo, useState } from "react";
-// // import { useNavigate } from "react-router-dom";
-// // import ScorecardLayout from "../components/scorecard/ScorecardLayout";
-// // import { useGameSession } from "../context/GameSessionContext";
-// // import { protocolRegistry } from "../data/protocolRegistry";
-
-// // type ScoreCellValue = number | "";
-
-// // function cloneValues(values: ScoreCellValue[][]) {
-// // 	return values.map((row) => [...row]);
-// // }
-
-// // export default function ScorecardPage() {
-// // 	const { session } = useGameSession();
-// // 	const navigate = useNavigate();
-
-// // 	const game = session?.game;
-// // 	const players = session?.players ?? [];
-
-// // 	const gameId = String(game?.id ?? "").toLowerCase();
-// // 	const protocolEntry = protocolRegistry[gameId];
-
-// // 	const storageKey = useMemo(() => {
-// // 		if (!game) return "";
-
-// // 		const playerKey = players
-// // 			.map((player) => player.name.trim().toLowerCase())
-// // 			.join("|");
-
-// // 		return `scorely:${String(game.id).toLowerCase()}:${playerKey}`;
-// // 	}, [game, players]);
-
-// // 	const [values, setValues] = useState<ScoreCellValue[][]>([]);
-// // 	const [history, setHistory] = useState<ScoreCellValue[][][]>([]);
-// // 	const [saveLabel, setSaveLabel] = useState("Spara");
-
-// // 	useEffect(() => {
-// // 		if (!game || !protocolEntry || players.length === 0) {
-// // 			setValues([]);
-// // 			setHistory([]);
-// // 			return;
-// // 		}
-
-// // 		const fallbackValues = protocolEntry.createInitialValues(
-// // 			players.length,
-// // 		);
-
-// // 		if (!storageKey) {
-// // 			setValues(fallbackValues);
-// // 			setHistory([]);
-// // 			return;
-// // 		}
-
-// // 		const raw = localStorage.getItem(storageKey);
-
-// // 		if (!raw) {
-// // 			setValues(fallbackValues);
-// // 			setHistory([]);
-// // 			return;
-// // 		}
-
-// // 		try {
-// // 			const parsed = JSON.parse(raw);
-
-// // 			if (
-// // 				Array.isArray(parsed) &&
-// // 				parsed.length === fallbackValues.length &&
-// // 				parsed.every(
-// // 					(row) =>
-// // 						Array.isArray(row) && row.length === players.length,
-// // 				)
-// // 			) {
-// // 				setValues(parsed);
-// // 				setHistory([]);
-// // 				return;
-// // 			}
-// // 		} catch {
-// // 			// ignore broken localStorage data
-// // 		}
-
-// // 		setValues(fallbackValues);
-// // 		setHistory([]);
-// // 	}, [game, players.length, protocolEntry, storageKey]);
-
-// // 	useEffect(() => {
-// // 		if (saveLabel !== "Sparat!") return;
-
-// // 		const timeout = setTimeout(() => {
-// // 			setSaveLabel("Spara");
-// // 		}, 1800);
-
-// // 		return () => clearTimeout(timeout);
-// // 	}, [saveLabel]);
-
-// // 	if (!game || players.length === 0) {
-// // 		return (
-// // 			<section className="min-h-screen w-full bg-[radial-gradient(circle_at_top,_rgba(233,246,239,0.95)_0%,_rgba(219,239,226,0.96)_45%,_rgba(210,233,217,0.98)_100%)]">
-// // 				<div className="mx-auto max-w-[720px] px-6 py-12">
-// // 					<div className="rounded-[28px] bg-white/45 p-8 text-center shadow-[0_10px_30px_rgba(0,0,0,0.04)]">
-// // 						<h1 className="text-2xl font-black text-slate-900">
-// // 							Ingen spelomgång hittades
-// // 						</h1>
-// // 						<p className="mt-3 text-slate-500">
-// // 							Välj spel och spelare först.
-// // 						</p>
-
-// // 						<button
-// // 							type="button"
-// // 							onClick={() => navigate("/")}
-// // 							className="mt-6 rounded-full bg-emerald-500 px-6 py-3 font-bold text-white transition hover:bg-emerald-600"
-// // 						>
-// // 							Till startsidan
-// // 						</button>
-// // 					</div>
-// // 				</div>
-// // 			</section>
-// // 		);
-// // 	}
-
-// // 	if (!protocolEntry) {
-// // 		return (
-// // 			<section className="min-h-screen w-full bg-[radial-gradient(circle_at_top,_rgba(233,246,239,0.95)_0%,_rgba(219,239,226,0.96)_45%,_rgba(210,233,217,0.98)_100%)]">
-// // 				<div className="mx-auto max-w-[720px] px-6 py-12">
-// // 					<div className="rounded-[28px] bg-white/45 p-8 text-center shadow-[0_10px_30px_rgba(0,0,0,0.04)]">
-// // 						<h1 className="text-2xl font-black text-slate-900">
-// // 							Protokoll saknas
-// // 						</h1>
-// // 						<p className="mt-3 text-slate-500">
-// // 							Det finns inget registrerat protokoll för{" "}
-// // 							{game.name} än.
-// // 						</p>
-
-// // 						<button
-// // 							type="button"
-// // 							onClick={() => navigate(-1)}
-// // 							className="mt-6 rounded-full bg-emerald-500 px-6 py-3 font-bold text-white transition hover:bg-emerald-600"
-// // 						>
-// // 							Tillbaka
-// // 						</button>
-// // 					</div>
-// // 				</div>
-// // 			</section>
-// // 		);
-// // 	}
-
-// // 	const ProtocolComponent = protocolEntry.component;
-
-// // 	const pushHistory = (snapshot: ScoreCellValue[][]) => {
-// // 		setHistory((prev) => [...prev.slice(-49), cloneValues(snapshot)]);
-// // 		setSaveLabel("Spara");
-// // 	};
-
-// // 	const handleCellChange = (
-// // 		rowIndex: number,
-// // 		playerIndex: number,
-// // 		value: ScoreCellValue,
-// // 	) => {
-// // 		setValues((prev) => {
-// // 			const prevClone = cloneValues(prev);
-// // 			pushHistory(prevClone);
-
-// // 			return prev.map((row, currentRowIndex) => {
-// // 				if (currentRowIndex !== rowIndex) return row;
-
-// // 				return row.map((cell, currentPlayerIndex) =>
-// // 					currentPlayerIndex === playerIndex ? value : cell,
-// // 				);
-// // 			});
-// // 		});
-// // 	};
-
-// // 	const handleBatchChange = (
-// // 		updater: (prev: ScoreCellValue[][]) => ScoreCellValue[][],
-// // 	) => {
-// // 		setValues((prev) => {
-// // 			const prevClone = cloneValues(prev);
-// // 			pushHistory(prevClone);
-// // 			return updater(cloneValues(prev));
-// // 		});
-// // 	};
-
-// // 	const handleUndo = () => {
-// // 		setHistory((prevHistory) => {
-// // 			if (prevHistory.length === 0) {
-// // 				return prevHistory;
-// // 			}
-
-// // 			const previousValues = prevHistory[prevHistory.length - 1];
-// // 			setValues(cloneValues(previousValues));
-// // 			setSaveLabel("Spara");
-
-// // 			return prevHistory.slice(0, -1);
-// // 		});
-// // 	};
-
-// // 	const handleReset = () => {
-// // 		const resetValues = protocolEntry.createInitialValues(players.length);
-
-// // 		if (values.length > 0) {
-// // 			pushHistory(values);
-// // 		}
-
-// // 		setValues(resetValues);
-
-// // 		if (storageKey) {
-// // 			localStorage.removeItem(storageKey);
-// // 		}
-
-// // 		setSaveLabel("Spara");
-// // 	};
-
-// // 	const handleSave = () => {
-// // 		if (!storageKey) return;
-
-// // 		localStorage.setItem(storageKey, JSON.stringify(values));
-// // 		setSaveLabel("Sparat!");
-// // 	};
-
-// // 	return (
-// // 		<ScorecardLayout
-// // 			title={game.name}
-// // 			onBack={() => navigate(-1)}
-// // 			onUndo={handleUndo}
-// // 			isUndoDisabled={history.length === 0}
-// // 			onReset={handleReset}
-// // 			onSave={handleSave}
-// // 			saveLabel={saveLabel}
-// // 		>
-// // 			<ProtocolComponent
-// // 				gameName={game.name}
-// // 				players={players}
-// // 				values={values}
-// // 				onChange={handleCellChange}
-// // 				onBatchChange={handleBatchChange}
-// // 			/>
-// // 		</ScorecardLayout>
-// // 	);
-// // }
-
-// import { useEffect, useMemo, useRef, useState } from "react";
-// import { useNavigate } from "react-router-dom";
-// import ScorecardLayout from "../components/scorecard/ScorecardLayout";
-// import { useGameSession } from "../context/GameSessionContext";
-// import { protocolRegistry } from "../data/protocolRegistry";
-
-// type ScoreCellValue = number | "";
-
-// type ToastMessage = {
-// 	id: number;
-// 	text: string;
-// };
-
-// function cloneValues(values: ScoreCellValue[][]) {
-// 	return values.map((row) => [...row]);
-// }
-
-// function getPlayerEvents(
-// 	values: ScoreCellValue[][],
-// 	playerIndex: number,
-// ): number[] {
-// 	return values
-// 		.map((row) => row[playerIndex])
-// 		.filter(
-// 			(value): value is number =>
-// 				value !== "" && !Number.isNaN(Number(value)),
-// 		)
-// 		.map(Number)
-// 		.filter((value) => value !== 0);
-// }
-
-// function getPlayerTotal(values: ScoreCellValue[][], playerIndex: number) {
-// 	return getPlayerEvents(values, playerIndex).reduce(
-// 		(sum, value) => sum + value,
-// 		0,
-// 	);
-// }
-
-// function hasSaidChicago(events: number[]) {
-// 	return events.includes(15) || events.includes(-15);
-// }
-
-// function getChicagoWinnerMessage(
-// 	playerName: string,
-// 	total: number,
-// 	playerEvents: number[],
-// ) {
-// 	const saidChicago = hasSaidChicago(playerEvents);
-
-// 	if (total >= 52 && saidChicago) {
-// 		return `Grattis! ${playerName} har vunnit spelet, ${total} poäng.`;
-// 	}
-
-// 	return "";
-// }
-
-// export default function ScorecardPage() {
-// 	const { session } = useGameSession();
-// 	const navigate = useNavigate();
-
-// 	const game = session?.game;
-// 	const players = session?.players ?? [];
-
-// 	const gameId = String(game?.id ?? "").toLowerCase();
-// 	const protocolEntry = protocolRegistry[gameId];
-
-// 	const storageKey = useMemo(() => {
-// 		if (!game) return "";
-
-// 		const playerKey = players
-// 			.map((player) => player.name.trim().toLowerCase())
-// 			.join("|");
-
-// 		return `scorely:${String(game.id).toLowerCase()}:${playerKey}`;
-// 	}, [game, players]);
-
-// 	const [values, setValues] = useState<ScoreCellValue[][]>([]);
-// 	const [history, setHistory] = useState<ScoreCellValue[][][]>([]);
-// 	const [toasts, setToasts] = useState<ToastMessage[]>([]);
-// 	const toastIdRef = useRef(0);
-// 	const announcedWinnerRef = useRef("");
-
-// 	const playerTotals = useMemo(
-// 		() => players.map((_, index) => getPlayerTotal(values, index)),
-// 		[players, values],
-// 	);
-
-// 	const winnerMessage = useMemo(() => {
-// 		if (!game || players.length === 0) return "";
-
-// 		if (gameId === "chicago") {
-// 			for (let i = 0; i < players.length; i++) {
-// 				const events = getPlayerEvents(values, i);
-// 				const message = getChicagoWinnerMessage(
-// 					players[i].name,
-// 					playerTotals[i],
-// 					events,
-// 				);
-
-// 				if (message) return message;
-// 			}
-// 		}
-
-// 		return "";
-// 	}, [game, gameId, players, values, playerTotals]);
-
-// 	const isProtocolLocked = winnerMessage !== "";
-
-// 	const showToast = (text: string) => {
-// 		const id = ++toastIdRef.current;
-
-// 		setToasts((prev) => [...prev, { id, text }]);
-
-// 		window.setTimeout(() => {
-// 			setToasts((prev) => prev.filter((toast) => toast.id !== id));
-// 		}, 2600);
-// 	};
-
-// 	useEffect(() => {
-// 		if (!game || !protocolEntry || players.length === 0) {
-// 			setValues([]);
-// 			setHistory([]);
-// 			announcedWinnerRef.current = "";
-// 			return;
-// 		}
-
-// 		const fallbackValues = protocolEntry.createInitialValues(
-// 			players.length,
-// 		);
-
-// 		if (!storageKey) {
-// 			setValues(fallbackValues);
-// 			setHistory([]);
-// 			announcedWinnerRef.current = "";
-// 			return;
-// 		}
-
-// 		const raw = localStorage.getItem(storageKey);
-
-// 		if (!raw) {
-// 			setValues(fallbackValues);
-// 			setHistory([]);
-// 			announcedWinnerRef.current = "";
-// 			return;
-// 		}
-
-// 		try {
-// 			const parsed = JSON.parse(raw);
-
-// 			if (
-// 				Array.isArray(parsed) &&
-// 				parsed.length === fallbackValues.length &&
-// 				parsed.every(
-// 					(row) =>
-// 						Array.isArray(row) && row.length === players.length,
-// 				)
-// 			) {
-// 				setValues(parsed);
-// 				setHistory([]);
-// 				announcedWinnerRef.current = "";
-// 				return;
-// 			}
-// 		} catch {
-// 			// ignore broken localStorage data
-// 		}
-
-// 		setValues(fallbackValues);
-// 		setHistory([]);
-// 		announcedWinnerRef.current = "";
-// 	}, [game, players.length, protocolEntry, storageKey]);
-
-// 	useEffect(() => {
-// 		if (!winnerMessage) {
-// 			announcedWinnerRef.current = "";
-// 			return;
-// 		}
-
-// 		if (announcedWinnerRef.current === winnerMessage) {
-// 			return;
-// 		}
-
-// 		announcedWinnerRef.current = winnerMessage;
-// 		showToast(winnerMessage);
-// 	}, [winnerMessage]);
-
-// 	if (!game || players.length === 0) {
-// 		return (
-// 			<section className="min-h-screen w-full bg-[radial-gradient(circle_at_top,_rgba(233,246,239,0.95)_0%,_rgba(219,239,226,0.96)_45%,_rgba(210,233,217,0.98)_100%)]">
-// 				<div className="mx-auto max-w-[720px] px-6 py-12">
-// 					<div className="rounded-[28px] bg-white/45 p-8 text-center shadow-[0_10px_30px_rgba(0,0,0,0.04)]">
-// 						<h1 className="text-2xl font-black text-slate-900">
-// 							Ingen spelomgång hittades
-// 						</h1>
-// 						<p className="mt-3 text-slate-500">
-// 							Välj spel och spelare först.
-// 						</p>
-
-// 						<button
-// 							type="button"
-// 							onClick={() => navigate("/")}
-// 							className="mt-6 rounded-full bg-emerald-500 px-6 py-3 font-bold text-white transition hover:bg-emerald-600"
-// 						>
-// 							Till startsidan
-// 						</button>
-// 					</div>
-// 				</div>
-// 			</section>
-// 		);
-// 	}
-
-// 	if (!protocolEntry) {
-// 		return (
-// 			<section className="min-h-screen w-full bg-[radial-gradient(circle_at_top,_rgba(233,246,239,0.95)_0%,_rgba(219,239,226,0.96)_45%,_rgba(210,233,217,0.98)_100%)]">
-// 				<div className="mx-auto max-w-[720px] px-6 py-12">
-// 					<div className="rounded-[28px] bg-white/45 p-8 text-center shadow-[0_10px_30px_rgba(0,0,0,0.04)]">
-// 						<h1 className="text-2xl font-black text-slate-900">
-// 							Protokoll saknas
-// 						</h1>
-// 						<p className="mt-3 text-slate-500">
-// 							Det finns inget registrerat protokoll för{" "}
-// 							{game.name} än.
-// 						</p>
-
-// 						<button
-// 							type="button"
-// 							onClick={() => navigate(-1)}
-// 							className="mt-6 rounded-full bg-emerald-500 px-6 py-3 font-bold text-white transition hover:bg-emerald-600"
-// 						>
-// 							Tillbaka
-// 						</button>
-// 					</div>
-// 				</div>
-// 			</section>
-// 		);
-// 	}
-
-// 	const ProtocolComponent = protocolEntry.component;
-
-// 	const pushHistory = (snapshot: ScoreCellValue[][]) => {
-// 		setHistory((prev) => [...prev.slice(-49), cloneValues(snapshot)]);
-// 	};
-
-// 	const handleCellChange = (
-// 		rowIndex: number,
-// 		playerIndex: number,
-// 		value: ScoreCellValue,
-// 	) => {
-// 		if (isProtocolLocked) return;
-
-// 		setValues((prev) => {
-// 			const prevClone = cloneValues(prev);
-// 			pushHistory(prevClone);
-
-// 			return prev.map((row, currentRowIndex) => {
-// 				if (currentRowIndex !== rowIndex) return row;
-
-// 				return row.map((cell, currentPlayerIndex) =>
-// 					currentPlayerIndex === playerIndex ? value : cell,
-// 				);
-// 			});
-// 		});
-// 	};
-
-// 	const handleBatchChange = (
-// 		updater: (prev: ScoreCellValue[][]) => ScoreCellValue[][],
-// 	) => {
-// 		if (isProtocolLocked) return;
-
-// 		setValues((prev) => {
-// 			const prevClone = cloneValues(prev);
-// 			pushHistory(prevClone);
-// 			return updater(cloneValues(prev));
-// 		});
-// 	};
-
-// 	const handleUndo = () => {
-// 		setHistory((prevHistory) => {
-// 			if (prevHistory.length === 0) {
-// 				return prevHistory;
-// 			}
-
-// 			const previousValues = prevHistory[prevHistory.length - 1];
-// 			setValues(cloneValues(previousValues));
-// 			return prevHistory.slice(0, -1);
-// 		});
-// 	};
-
-// 	const handleReset = () => {
-// 		const resetValues = protocolEntry.createInitialValues(players.length);
-
-// 		if (values.length > 0) {
-// 			pushHistory(values);
-// 		}
-
-// 		setValues(resetValues);
-
-// 		if (storageKey) {
-// 			localStorage.removeItem(storageKey);
-// 		}
-// 	};
-
-// 	const handleSave = () => {
-// 		if (!storageKey) return;
-
-// 		localStorage.setItem(storageKey, JSON.stringify(values));
-// 		showToast("Protokollet har sparats!");
-// 	};
-
-// 	return (
-// 		<ScorecardLayout
-// 			title={game.name}
-// 			onBack={() => navigate(-1)}
-// 			onUndo={handleUndo}
-// 			isUndoDisabled={history.length === 0}
-// 			onReset={handleReset}
-// 			onSave={handleSave}
-// 			isSaveDisabled={false}
-// 			toasts={toasts}
-// 		>
-// 			<ProtocolComponent
-// 				gameName={game.name}
-// 				players={players}
-// 				values={values}
-// 				onChange={handleCellChange}
-// 				onBatchChange={handleBatchChange}
-// 				isLocked={isProtocolLocked}
-// 			/>
-// 		</ScorecardLayout>
-// 	);
-// }
-
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ScorecardLayout from "../components/scorecard/ScorecardLayout";
@@ -710,6 +140,134 @@ function getPlumpWinner(
 	}
 }
 
+function getLowestScoreWinner(
+	players: { name: string }[],
+	values: ScoreCellValue[][],
+) {
+	if (players.length === 0) return null;
+	if (values.length === 0) return null;
+
+	const allFilled = values.every((row) => row.every((cell) => cell !== ""));
+	if (!allFilled) return null;
+
+	const totals = players.map((_, playerIndex) =>
+		values.reduce((sum, row) => {
+			const value = row[playerIndex];
+			return sum + (typeof value === "number" ? value : 0);
+		}, 0),
+	);
+
+	const lowestScore = Math.min(...totals);
+
+	const winnerIndices = totals
+		.map((score, index) => ({ score, index }))
+		.filter((item) => item.score === lowestScore)
+		.map((item) => item.index);
+
+	if (winnerIndices.length === 1) {
+		const winnerName = players[winnerIndices[0]].name;
+
+		return {
+			name: winnerName,
+			message: `Grattis! ${winnerName} har vunnit spelet med ${lowestScore} poäng.`,
+		};
+	}
+
+	const tiedNames = winnerIndices
+		.map((index) => players[index].name)
+		.join(", ");
+
+	return {
+		name: tiedNames,
+		message: `Oavgjort! ${tiedNames} vann med ${lowestScore} poäng.`,
+	};
+}
+
+function getHighestScoreWinner(
+	players: { name: string }[],
+	values: ScoreCellValue[][],
+) {
+	if (players.length === 0) return null;
+	if (values.length === 0) return null;
+
+	const allFilled = values.every((row) => row.every((cell) => cell !== ""));
+	if (!allFilled) return null;
+
+	const totals = players.map((_, playerIndex) =>
+		values.reduce((sum, row) => {
+			const value = row[playerIndex];
+			return sum + (typeof value === "number" ? value : 0);
+		}, 0),
+	);
+
+	const highestScore = Math.max(...totals);
+
+	const winnerIndices = totals
+		.map((score, index) => ({ score, index }))
+		.filter((item) => item.score === highestScore)
+		.map((item) => item.index);
+
+	if (winnerIndices.length === 1) {
+		const winnerName = players[winnerIndices[0]].name;
+
+		return {
+			name: winnerName,
+			message: `Grattis! ${winnerName} har vunnit spelet med ${highestScore} poäng.`,
+		};
+	}
+
+	const tiedNames = winnerIndices
+		.map((index) => players[index].name)
+		.join(", ");
+
+	return {
+		name: tiedNames,
+		message: `Oavgjort! ${tiedNames} vann med ${highestScore} poäng.`,
+	};
+}
+
+function getTrebellerWinner(
+	players: { name: string }[],
+	values: ScoreCellValue[][],
+) {
+	const completedRounds = values.filter((row) =>
+		row.every((cell) => cell !== ""),
+	);
+
+	if (completedRounds.length < 18) return null;
+
+	const totals = players.map((_, playerIndex) =>
+		completedRounds.reduce((sum, row) => {
+			const value = row[playerIndex];
+
+			if (typeof value !== "number") return sum;
+
+			const score = (value % 100) - 50;
+			return sum + score;
+		}, 0),
+	);
+
+	const highestScore = Math.max(...totals);
+	const winnerIndices = totals
+		.map((score, index) => ({ score, index }))
+		.filter((item) => item.score === highestScore)
+		.map((item) => item.index);
+
+	if (winnerIndices.length === 1) {
+		const winnerName = players[winnerIndices[0]].name;
+
+		return {
+			name: winnerName,
+			message: `Grattis! ${winnerName} har vunnit spelet med ${highestScore > 0 ? `+${highestScore}` : highestScore} poäng.`,
+		};
+	}
+
+	return {
+		name: null,
+		message: `Spelet slutade oavgjort på ${highestScore > 0 ? `+${highestScore}` : highestScore} poäng.`,
+	};
+}
+
 export default function ScorecardPage() {
 	const { session } = useGameSession();
 	const navigate = useNavigate();
@@ -749,6 +307,9 @@ export default function ScorecardPage() {
 	const toastIdRef = useRef(0);
 	const announcedWinnerRef = useRef("");
 
+	const hasLoadedInitialValuesRef = useRef(false);
+	const hasUserMadeChangeRef = useRef(false);
+
 	// const playerTotals = useMemo(
 	// 	() => players.map((_, index) => getPlayerTotal(values, index)),
 	// 	[players, values],
@@ -767,6 +328,18 @@ export default function ScorecardPage() {
 
 		if (gameId === "plump") {
 			return getPlumpWinner(players, values);
+		}
+
+		if (gameId === "golf" || gameId === "discgolf") {
+			return getLowestScoreWinner(players, values);
+		}
+
+		if (gameId === "jazz") {
+			return getHighestScoreWinner(players, values);
+		}
+
+		if (gameId === "trebeller") {
+			return getTrebellerWinner(players, values);
 		}
 
 		return null;
@@ -820,6 +393,8 @@ export default function ScorecardPage() {
 			setValues([]);
 			setHistory([]);
 			announcedWinnerRef.current = "";
+				hasLoadedInitialValuesRef.current = true;
+				hasUserMadeChangeRef.current = false;
 			return;
 		}
 
@@ -831,6 +406,8 @@ export default function ScorecardPage() {
 			setValues(fallbackValues);
 			setHistory([]);
 			announcedWinnerRef.current = "";
+			hasLoadedInitialValuesRef.current = true;
+			hasUserMadeChangeRef.current = false;
 			return;
 		}
 
@@ -840,6 +417,8 @@ export default function ScorecardPage() {
 			setValues(fallbackValues);
 			setHistory([]);
 			announcedWinnerRef.current = "";
+			hasLoadedInitialValuesRef.current = true;
+			hasUserMadeChangeRef.current = false;
 			return;
 		}
 
@@ -857,6 +436,8 @@ export default function ScorecardPage() {
 				setValues(parsed);
 				setHistory([]);
 				announcedWinnerRef.current = "";
+				hasLoadedInitialValuesRef.current = true;
+				hasUserMadeChangeRef.current = false;
 				return;
 			}
 		} catch {
@@ -866,11 +447,17 @@ export default function ScorecardPage() {
 		setValues(fallbackValues);
 		setHistory([]);
 		announcedWinnerRef.current = "";
+		hasLoadedInitialValuesRef.current = true;
+		hasUserMadeChangeRef.current = false;
 	}, [game, players.length, protocolEntry, storageKey]);
 
 	useEffect(() => {
 		if (!winnerMessage) {
 			announcedWinnerRef.current = "";
+			return;
+		}
+
+		if (!hasLoadedInitialValuesRef.current) {
 			return;
 		}
 
@@ -880,6 +467,10 @@ export default function ScorecardPage() {
 
 		announcedWinnerRef.current = winnerMessage;
 		showToast(winnerMessage);
+
+		if (!hasUserMadeChangeRef.current) {
+			return;
+		}
 
 		const protocol = buildSavedProtocol(
 			values,
@@ -955,6 +546,8 @@ export default function ScorecardPage() {
 	) => {
 		if (isProtocolLocked) return;
 
+		hasUserMadeChangeRef.current = true;
+
 		setValues((prev) => {
 			const prevClone = cloneValues(prev);
 			pushHistory(prevClone);
@@ -973,6 +566,8 @@ export default function ScorecardPage() {
 		updater: (prev: ScoreCellValue[][]) => ScoreCellValue[][],
 	) => {
 		if (isProtocolLocked) return;
+
+		hasUserMadeChangeRef.current = true;
 
 		setValues((prev) => {
 			const prevClone = cloneValues(prev);
@@ -995,6 +590,8 @@ export default function ScorecardPage() {
 
 	const handleReset = () => {
 		const resetValues = protocolEntry.createInitialValues(players.length);
+
+		hasUserMadeChangeRef.current = true;
 
 		if (values.length > 0) {
 			pushHistory(values);
