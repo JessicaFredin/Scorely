@@ -241,11 +241,13 @@ export default function TenThousandProtocol({
 		if (onBatchChange) {
 			onBatchChange((prev) => {
 				const next = ensureMinimumRows(prev, players.length);
+
 				const totalBefore = getPlayerTotalBeforeRow(
 					next,
 					playerIndex,
 					rowIndex,
 				);
+
 				const isOnBoard = totalBefore >= ENTRY_TARGET;
 
 				next[rowIndex][playerIndex] = normalizeEntryValue(
@@ -267,6 +269,7 @@ export default function TenThousandProtocol({
 
 				return next;
 			});
+
 			return;
 		}
 
@@ -275,7 +278,9 @@ export default function TenThousandProtocol({
 			playerIndex,
 			rowIndex,
 		);
+
 		const isOnBoard = totalBefore >= ENTRY_TARGET;
+
 		onChange(
 			rowIndex,
 			playerIndex,
@@ -351,7 +356,7 @@ export default function TenThousandProtocol({
 						))}
 					</div>
 
-					{safeValues.map((row, rowIndex) => {
+					{safeValues.map((_, rowIndex) => {
 						const rowBg =
 							rowIndex % 2 === 0 ? "bg-white/60" : "bg-[#f7faf8]";
 
@@ -516,6 +521,7 @@ export default function TenThousandProtocol({
 									<div className="text-[2rem] font-black text-slate-900">
 										{modal.value}
 									</div>
+
 									<div className="text-sm text-slate-500">
 										poäng
 									</div>
@@ -575,7 +581,11 @@ export default function TenThousandProtocol({
 												modal.value === score
 													? "border-emerald-400 bg-emerald-50 text-slate-900"
 													: "border-[#d8e3dc] bg-white text-slate-700 hover:bg-slate-50"
-											} ${disabled ? "cursor-not-allowed opacity-35 hover:bg-white" : ""}`}
+											} ${
+												disabled
+													? "cursor-not-allowed opacity-35 hover:bg-white"
+													: ""
+											}`}
 										>
 											{score}
 										</button>
@@ -593,6 +603,7 @@ export default function TenThousandProtocol({
 											modal.playerIndex,
 											modal.value,
 										);
+
 										closeModal();
 									}}
 									className={`w-full rounded-[18px] px-5 py-5 text-[1.1rem] font-bold text-white transition ${
