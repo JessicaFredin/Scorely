@@ -50,6 +50,7 @@ function App() {
 				<Route path="/game/golf" element={<ScorecardPage />} />
 				<Route path="/game/yatzy" element={<ScorecardPage />} />
 				<Route path="/game/10000" element={<ScorecardPage />} />
+				<Route path="/game/gigant-yatzy" element={<ScorecardPage />} />
 			</Routes>
 		</BrowserRouter>
 	);

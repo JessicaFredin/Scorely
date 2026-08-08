@@ -97,8 +97,72 @@ export const games: Game[] = [
 		scoreType: "points",
 		category: "tärningsspel",
 		description:
-			"Spelare ska försöka få 10000 poäng, men man måste få minst 1000 poäng för att hamna på pappret.",
+			"Ett tärningsspel där spelare samlar poäng över flera rundor. Man måste få minst 1000 poäng i en runda för att komma in på tavlan. Först till 10000 vinner.",
+	},
+	{
+		id: "4-manswhist",
+		name: "4-manswhist",
+		minPlayers: 4,
+		maxPlayers: 4,
+		hasRounds: true,
+		scoreType: "points",
+		category: "kortspel",
+		description:
+			"Två lag, säg rött (spel) eller svart (pass). Lyckas du inte ta tillräckligt med stick ger det straffpoäng. Först till 13 vinner.",
+	},
+	{
+		id: "2-manswhist",
+		name: "2-manswhist",
+		minPlayers: 2,
+		maxPlayers: 2,
+		hasRounds: true,
+		scoreType: "points",
+		category: "kortspel",
+		description:
+			"Samma som 4-manswhist men för 2 spelare. Säg rött eller svart, först till 13 poäng vinner.",
+	},
+	{
+		id: "maxi-yatzy",
+		name: "Maxi Yatzy",
+		minPlayers: 2,
+		maxPlayers: 6,
+		hasRounds: true,
+		scoreType: "points",
+		category: "tärningsspel",
+		description:
+			"Yatzy med 6 tärningar och fler kategorier än vanlig Yatzy. Ger fler kombinationer och högre poäng.",
+	},
+	{
+		id: "gigant-yatzy",
+		name: "Gigant Yatzy",
+		minPlayers: 2,
+		maxPlayers: 6,
+		hasRounds: true,
+		scoreType: "points",
+		category: "tärningsspel",
+		description:
+			"En större variant av Yatzy med ännu fler tärningar och fler möjliga kombinationer. Bonus ges vid hög övre summa.",
+	},
+	{
+		id: "30",
+		name: "30",
+		minPlayers: 2,
+		maxPlayers: 6,
+		hasRounds: true,
+		scoreType: "points",
+		category: "tärningsspel",
+		description:
+			"Alla börjar på 30 poäng. Du förlorar poäng under spelets gång, och når du 0 är du ute. Sista spelaren kvar vinner.",
+	},
+	{
+		id: "egen-poängtavla",
+		name: "Egen poängtavla",
+		minPlayers: 1,
+		maxPlayers: 12,
+		hasRounds: true,
+		scoreType: "points",
+		category: "anpassat",
+		description:
+			"Ett anpassat protokoll där du själv fyller i poäng för valfritt spel.",
 	},
 ];
-
-

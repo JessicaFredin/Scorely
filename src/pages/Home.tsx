@@ -1,136 +1,9 @@
-// import { games } from "../data/games";
-// import type { Game } from "../types/game";
-// import { useState } from "react";
-// import GameList from "../components/GameList";
-// // import Button from "../components/Button";
-// import { useNavigate } from "react-router-dom";
-// import MenuCard from "../components/MenuCard";
-// import { Archive, Circle, Dice5, Spade } from "lucide-react";
-
-// export default function Home() {
-// 	const navigate = useNavigate();
-
-// 	const [selectedCategory, setSelectedCategory] = useState<
-// 		null | Game["category"]
-// 	>(null);
-
-// 	const filteredGames = selectedCategory
-// 		? games.filter((game) => game.category === selectedCategory)
-// 		: [];
-
-// 	return (
-// 		// <section className="w-full px-4 py-16 sm:py-20 md:py-24 ">
-// 		// 	<div className="max-w-screen-md mx-auto text-center">
-// 		// 		<img
-// 		// 			src="./logo.png"
-// 		// 			alt="Scorely Logo"
-// 		// 			className="mx-auto w-64 sm:w-72 md:w-96 mb-4"
-// 		// 		/>
-
-// 		// 		<div className="flex flex-wrap justify-center">
-// 		// 			<Button
-// 		// 				text="Kortspel"
-// 		// 				color="primary"
-// 		// 				onClick={() => setSelectedCategory("kortspel")}
-// 		// 			/>
-// 		// 			<Button
-// 		// 				text="Golf"
-// 		// 				color="secondary"
-// 		// 				onClick={() => setSelectedCategory("golf")}
-// 		// 			/>
-// 		// 			<Button
-// 		// 				text="Tärningsspel"
-// 		// 				color="danger"
-// 		// 				onClick={() => setSelectedCategory("tärningsspel")}
-// 		// 			/>
-
-// 		// 			<Button
-// 		// 				text="Se sparade protokoll"
-// 		// 				color="primary"
-// 		// 				onClick={() => navigate("/saved-protocols")}
-// 		// 			/>
-// 		// 		</div>
-
-// 		// 		{selectedCategory && (
-// 		// 			<GameList
-// 		// 				games={filteredGames}
-// 		// 				category={selectedCategory}
-// 		// 			/>
-// 		// 		)}
-// 		// 	</div>
-// 		// </section>
-
-// 		<section className="min-h-screen w-full bg-[radial-gradient(circle_at_top,_rgba(233,246,239,0.95)_0%,_rgba(219,239,226,0.96)_45%,_rgba(210,233,217,0.98)_100%)]">
-// 			<div className="flex min-h-screen w-full items-start justify-center px-6 py-10 md:px-10 md:py-14">
-// 				<div className="flex w-full max-w-[560px] flex-col items-center">
-// 					<img
-// 						src="./logo.png"
-// 						alt="Scorely Logo"
-// 						className="mx-auto mb-4 w-[120px] md:mb-5 md:w-[138px]"
-// 					/>
-
-// 					<h1 className="text-center text-[4rem] font-black leading-none tracking-[-0.04em] text-slate-950 md:text-[4.4rem]">
-// 						Scorely
-// 					</h1>
-
-// 					<p className="mt-3 text-center text-[1rem] font-medium text-slate-500 md:text-[1.05rem]">
-// 						Ditt digitala protokoll för alla spel
-// 					</p>
-
-// 					<div className="mt-11 w-full space-y-4">
-// 						<MenuCard
-// 							text="Kortspel"
-// 							icon={Spade}
-// 							iconBg="bg-emerald-500"
-// 							onClick={() => setSelectedCategory("kortspel")}
-// 						/>
-
-// 						<MenuCard
-// 							text="Golf"
-// 							icon={Circle}
-// 							iconBg="bg-amber-400"
-// 							onClick={() => setSelectedCategory("golf")}
-// 						/>
-
-// 						<MenuCard
-// 							text="Tärningsspel"
-// 							icon={Dice5}
-// 							iconBg="bg-pink-500"
-// 							onClick={() => setSelectedCategory("tärningsspel")}
-// 						/>
-// 					</div>
-
-// 					<div className="my-8 h-px w-full bg-[#c9ddd1] " />
-
-// 					<div className="w-full">
-// 						<MenuCard
-// 							text="Se sparade protokoll"
-// 							icon={Archive}
-// 							iconBg="bg-slate-200"
-// 							onClick={() => navigate("/saved-protocols")}
-// 						/>
-// 					</div>
-
-// 					{selectedCategory && (
-// 						<div className="mt-7 w-full rounded-[22px] bg-white/70 p-4 shadow-[0_8px_24px_rgba(0,0,0,0.04)] backdrop-blur-[2px]">
-// 							<GameList
-// 								games={filteredGames}
-// 								category={selectedCategory}
-// 							/>
-// 						</div>
-// 					)}
-// 				</div>
-// 			</div>
-// 		</section>
-// 	);
-// }
-
 import { games } from "../data/games";
 import type { Game } from "../types/game";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import MenuCard from "../components/MenuCard";
-import { Archive, Circle, Dice5, Spade } from "lucide-react";
+import { Archive, Target, Dice5, Spade, Settings } from "lucide-react";
 import { useGameSession } from "../context/GameSessionContext";
 import TrophyIcon from "../components/TrophyIcon";
 
@@ -170,7 +43,7 @@ export default function Home() {
 		{
 			key: "golf",
 			text: "Golf",
-			icon: Circle,
+			icon: Target,
 			iconBg: "bg-amber-400",
 		},
 		{
@@ -178,6 +51,12 @@ export default function Home() {
 			text: "Tärningsspel",
 			icon: Dice5,
 			iconBg: "bg-pink-500",
+		},
+		{
+			key: "anpassat",
+			text: "Anpassat",
+			icon: Settings,
+			iconBg: "bg-slate-200",
 		},
 	];
 
