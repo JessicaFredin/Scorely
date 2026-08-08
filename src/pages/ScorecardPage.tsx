@@ -274,6 +274,102 @@ function getTrebellerWinner(
 	};
 }
 
+function getYatzyWinner(
+	players: { name: string }[],
+	values: ScoreCellValue[][],
+) {
+	if (players.length === 0) return null;
+	if (values.length === 0) return null;
+
+	const allFilled = values.every((row) => row.every((cell) => cell !== ""));
+	if (!allFilled) return null;
+
+	const getUpperSum = (playerIndex: number) =>
+		[0, 1, 2, 3, 4, 5].reduce((sum, rowIndex) => {
+			const value = values[rowIndex]?.[playerIndex];
+			return sum + (typeof value === "number" ? value : 0);
+		}, 0);
+
+	const getBonus = (playerIndex: number) =>
+		getUpperSum(playerIndex) >= 63 ? 50 : 0;
+
+	const totals = players.map((_, playerIndex) => {
+		const rowsTotal = values.reduce((sum, row, rowIndex) => {
+			if (rowIndex === 6) return sum;
+			const value = row[playerIndex];
+			return sum + (typeof value === "number" ? value : 0);
+		}, 0);
+
+		return rowsTotal + getBonus(playerIndex);
+	});
+
+	const highestScore = Math.max(...totals);
+
+	const winnerIndices = totals
+		.map((score, index) => ({ score, index }))
+		.filter((item) => item.score === highestScore)
+		.map((item) => item.index);
+
+	if (winnerIndices.length === 1) {
+		const winnerName = players[winnerIndices[0]].name;
+
+		return {
+			name: winnerName,
+			message: `Grattis! ${winnerName} har vunnit spelet med ${highestScore} poäng.`,
+		};
+	}
+
+	const tiedNames = winnerIndices
+		.map((index) => players[index].name)
+		.join(", ");
+
+	return {
+		name: tiedNames,
+		message: `Oavgjort! ${tiedNames} vann med ${highestScore} poäng.`,
+	};
+}
+
+function getTenThousandWinner(
+	players: { name: string }[],
+	values: ScoreCellValue[][],
+) {
+	if (players.length === 0 || values.length === 0) return null;
+
+	const totals = players.map((_, playerIndex) =>
+		values.reduce((sum, row) => {
+			const value = row[playerIndex];
+			return sum + (typeof value === "number" ? value : 0);
+		}, 0),
+	);
+
+	const highestScore = Math.max(...totals);
+
+	if (highestScore < 10000) return null;
+
+	const winnerIndices = totals
+		.map((score, index) => ({ score, index }))
+		.filter((item) => item.score === highestScore)
+		.map((item) => item.index);
+
+	if (winnerIndices.length === 1) {
+		const winnerName = players[winnerIndices[0]].name;
+
+		return {
+			name: winnerName,
+			message: `Grattis! ${winnerName} har vunnit spelet med ${highestScore} poäng.`,
+		};
+	}
+
+	const tiedNames = winnerIndices
+		.map((index) => players[index].name)
+		.join(", ");
+
+	return {
+		name: tiedNames,
+		message: `Oavgjort! ${tiedNames} vann med ${highestScore} poäng.`,
+	};
+}
+
 export default function ScorecardPage() {
 	const { session } = useGameSession();
 	const navigate = useNavigate();
@@ -343,6 +439,18 @@ export default function ScorecardPage() {
 			return getTrebellerWinner(players, values);
 		}
 
+		if (gameId === "yatzy") {
+			return getYatzyWinner(players, values);
+		}
+
+		if (gameId === "gigant-yatzy") {
+			return getHighestScoreWinner(players, values);
+		}
+
+		if (gameId === "10000") {
+			return getTenThousandWinner(players, values);
+		}
+
 		return null;
 	}, [game, gameId, players, values]);
 
@@ -374,6 +482,7 @@ export default function ScorecardPage() {
 				| ReturnType<typeof getLowestScoreWinner>
 				| ReturnType<typeof getHighestScoreWinner>
 				| ReturnType<typeof getTrebellerWinner>
+				| ReturnType<typeof getYatzyWinner>
 				| null = null;
 
 			if (gameId === "chicago") {
@@ -388,8 +497,12 @@ export default function ScorecardPage() {
 				resolvedWinner = getHighestScoreWinner(players, nextValues);
 			} else if (gameId === "trebeller") {
 				resolvedWinner = getTrebellerWinner(players, nextValues);
+			} else if (gameId === "yatzy") {
+				resolvedWinner = getYatzyWinner(players, nextValues);
 			}
 
+		
+	
 			return {
 				id: protocolIdRef.current,
 				gameId: String(game.id),

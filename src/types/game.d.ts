@@ -5,6 +5,6 @@ export interface Game {
 	maxPlayers: number;
 	hasRounds: boolean;
 	scoreType: "points" | "strokes" | "minus";
-	category: "kortspel" | "golf" | "tärningsspel";
+	category: "kortspel" | "golf" | "tärningsspel" | "anpassat";
 	description: string;
 }

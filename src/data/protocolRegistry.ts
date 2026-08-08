@@ -1,22 +1,3 @@
-// import GolfProtocol from "../protocols/GolfProtocol";
-// import ChicagoProtocol from "../protocols/ChicagoProtocol";
-// import PlumpProtocol from "../protocols/PlumpProtocol";
-// import JazzProtocol from "../protocols/JazzProtocol";
-// import TrebellerProtocol from "../protocols/TrebellerProtocol";
-// import YatzyProtocol from "../protocols/YatzyProtocol";
-
-// export const protocolRegistry: Record<string, React.ComponentType> = {
-// 	golf: GolfProtocol,
-// 	discgolf: GolfProtocol,
-// 	chicago: ChicagoProtocol,
-// 	"500": ChicagoProtocol,
-// 	plump: PlumpProtocol,
-// 	jazz: JazzProtocol,
-// 	trebeller: TrebellerProtocol,
-// 	yatzy: YatzyProtocol,
-// 	"10000": YatzyProtocol,
-// };
-
 import type { ComponentType } from "react";
 import GolfProtocol from "../protocols/GolfProtocol";
 import ChicagoProtocol from "../protocols/ChicagoProtocol";
@@ -25,6 +6,8 @@ import JazzProtocol from "../protocols/JazzProtocol";
 import TrebellerProtocol from "../protocols/TrebellerProtocol";
 import YatzyProtocol from "../protocols/YatzyProtocol";
 import FiveHundredProtocol from "../protocols/FiveHundredProtocol";
+import GigantYatzyProtocol from "../protocols/GigantYatzyProtocol";
+import TenThousandProtocol from "../protocols/TenThousandProtocol";
 
 export type ScoreCellValue = number | "";
 
@@ -95,7 +78,11 @@ export const protocolRegistry: Record<string, ProtocolEntry> = {
 		createInitialValues: (playerCount) => createMatrix(16, playerCount),
 	},
 	"10000": {
-		component: YatzyProtocol,
-		createInitialValues: (playerCount) => createMatrix(10, playerCount),
+		component: TenThousandProtocol,
+		createInitialValues: (playerCount) => createMatrix(5, playerCount),
+	},
+	"gigant-yatzy": {
+		component: GigantYatzyProtocol,
+		createInitialValues: (playerCount) => createMatrix(47, playerCount),
 	},
 };
