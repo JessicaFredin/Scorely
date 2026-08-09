@@ -5,6 +5,10 @@
   scroll-behavior: smooth;
 }
 
+html, body{
+  overscroll-behavior-y: none;
+}
+
 body {
   font-family: "Poppins";
   /* background-color: #FAFAFA; */
