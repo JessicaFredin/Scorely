@@ -413,7 +413,7 @@ function getTenThousandWinner(
 }
 
 export default function ScorecardPage() {
-	const { session } = useGameSession();
+	const { session, setSession } = useGameSession();
 	const navigate = useNavigate();
 
 	const game = session?.game;
@@ -444,6 +444,23 @@ export default function ScorecardPage() {
 			createdAtRef.current = session.protocolCreatedAt;
 		}
 	}, [session?.protocolId, session?.protocolCreatedAt]);
+
+	useEffect(() => {
+		if (!session || !game || players.length === 0) {
+			return;
+		}
+
+		if (session.protocolId && session.protocolCreatedAt) {
+			return;
+		}
+
+		setSession({
+			...session,
+			protocolId: session.protocolId ?? protocolIdRef.current,
+			protocolCreatedAt:
+				session.protocolCreatedAt ?? createdAtRef.current,
+		});
+	}, [game, players.length, session, setSession]);
 
 	const [values, setValues] = useState<ScoreCellValue[][]>([]);
 	const [history, setHistory] = useState<ScoreCellValue[][][]>([]);
@@ -638,6 +655,23 @@ export default function ScorecardPage() {
 		hasLoadedInitialValuesRef.current = true;
 		hasUserMadeChangeRef.current = false;
 	}, [game, players.length, protocolEntry, storageKey]);
+
+	useEffect(() => {
+		if (!hasLoadedInitialValuesRef.current) {
+			return;
+		}
+
+		if (!storageKey || values.length === 0) {
+			return;
+		}
+
+		try {
+			localStorage.setItem(storageKey, JSON.stringify(values));
+		} catch {
+			// Om localStorage skulle vara otillgängligt
+			// ska spelet ändå fortsätta fungera.
+		}
+	}, [storageKey, values]);
 
 	useEffect(() => {
 		if (!winnerMessage) {
