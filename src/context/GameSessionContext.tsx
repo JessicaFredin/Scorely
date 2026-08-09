@@ -1,4 +1,5 @@
 /* eslint-disable react-refresh/only-export-components */
+
 import {
 	createContext,
 	useCallback,
@@ -6,21 +7,29 @@ import {
 	useMemo,
 	useState,
 } from "react";
+
 import type { ReactNode } from "react";
 
 import type { Game } from "../types/game";
 import type { Player } from "../types/player";
 
-type GameSession = {
+export type GameSessionStatus = "active" | "finished";
+
+export type GameSession = {
 	game: Game;
 	players: Player[];
+
 	protocolId?: string;
 	protocolCreatedAt?: string;
+
+	status?: GameSessionStatus;
 };
 
 type GameSessionContextType = {
 	session: GameSession | null;
+
 	setSession: (session: GameSession) => void;
+
 	resetSession: () => void;
 };
 
@@ -34,18 +43,19 @@ function loadStoredSession(): GameSession | null {
 			return null;
 		}
 
-		const parsed = JSON.parse(raw) as GameSession;
+		const parsed: unknown = JSON.parse(raw);
 
-		if (
-			!parsed ||
-			typeof parsed !== "object" ||
-			!parsed.game ||
-			!Array.isArray(parsed.players)
-		) {
+		if (typeof parsed !== "object" || parsed === null) {
 			return null;
 		}
 
-		return parsed;
+		const candidate = parsed as Partial<GameSession>;
+
+		if (!candidate.game || !Array.isArray(candidate.players)) {
+			return null;
+		}
+
+		return candidate as GameSession;
 	} catch {
 		return null;
 	}
@@ -61,13 +71,23 @@ export function GameSessionProvider({ children }: { children: ReactNode }) {
 	);
 
 	const setSession = useCallback((nextSession: GameSession) => {
-		setSessionState(nextSession);
+		const normalizedSession: GameSession = {
+			...nextSession,
+
+			status: nextSession.status ?? "active",
+		};
+
+		setSessionState(normalizedSession);
 
 		try {
-			localStorage.setItem(STORAGE_KEY, JSON.stringify(nextSession));
+			localStorage.setItem(
+				STORAGE_KEY,
+				JSON.stringify(normalizedSession),
+			);
 		} catch {
-			// Scorely fungerar fortfarande även om
-			// localStorage skulle vara otillgängligt.
+			// Scorely fortsätter fungera
+			// även om localStorage
+			// inte är tillgängligt.
 		}
 	}, []);
 

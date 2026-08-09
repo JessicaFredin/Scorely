@@ -1,10 +1,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+
 import ScorecardLayout from "../components/scorecard/ScorecardLayout";
 import { useGameSession } from "../context/GameSessionContext";
 import { protocolRegistry } from "../data/protocolRegistry";
 import { ProtocolService } from "../services/ProtocolService";
+
 import type { SavedProtocol } from "../types/savedProtocol";
+
+import { getGameStorageKey } from "../utils/gameStorage";
 
 type ScoreCellValue = number | "";
 
@@ -13,7 +17,10 @@ type ToastMessage = {
 	text: string;
 };
 
-const emptyPlayers: { name: string; scores: number[] }[] = [];
+const emptyPlayers: {
+	name: string;
+	scores: number[];
+}[] = [];
 
 function cloneValues(values: ScoreCellValue[][]) {
 	return values.map((row) => [...row]);
@@ -40,6 +47,10 @@ function getPlayerTotal(values: ScoreCellValue[][], playerIndex: number) {
 	);
 }
 
+/* =========================================================
+   CHICAGO
+========================================================= */
+
 function hasSaidChicago(events: number[]) {
 	return events.includes(15) || events.includes(-15);
 }
@@ -50,6 +61,7 @@ function getChicagoWinner(
 ) {
 	for (let i = 0; i < players.length; i++) {
 		const events = getPlayerEvents(values, i);
+
 		const total = getPlayerTotal(values, i);
 
 		if (total >= 52 && hasSaidChicago(events)) {
@@ -62,6 +74,10 @@ function getChicagoWinner(
 
 	return null;
 }
+
+/* =========================================================
+   500
+========================================================= */
 
 function getFiveHundredWinner(
 	players: { name: string }[],
@@ -81,11 +97,18 @@ function getFiveHundredWinner(
 	return null;
 }
 
+/* =========================================================
+   PLUMP
+========================================================= */
+
 function decodePlumpValue(value: ScoreCellValue) {
-	if (value === "" || typeof value !== "number") return null;
+	if (value === "" || typeof value !== "number") {
+		return null;
+	}
 
 	if (value >= 200) {
 		const bid = value - 200;
+
 		return {
 			bid,
 			plump: true,
@@ -95,6 +118,7 @@ function decodePlumpValue(value: ScoreCellValue) {
 
 	if (value >= 100) {
 		const bid = value - 100;
+
 		return {
 			bid,
 			plump: false,
@@ -115,18 +139,25 @@ function getPlumpWinner(
 ) {
 	const allFilled = values.every((row) => row.every((cell) => cell !== ""));
 
-	if (!allFilled) return null;
+	if (!allFilled) {
+		return null;
+	}
 
 	const totals = players.map((_, playerIndex) =>
 		values.reduce((sum, row) => {
 			const decoded = decodePlumpValue(row[playerIndex]);
+
 			return sum + (decoded ? decoded.points : 0);
 		}, 0),
 	);
 
 	const highestScore = Math.max(...totals);
+
 	const winnerIndices = totals
-		.map((score, index) => ({ score, index }))
+		.map((score, index) => ({
+			score,
+			index,
+		}))
 		.filter((item) => item.score === highestScore)
 		.map((item) => item.index);
 
@@ -142,19 +173,33 @@ function getPlumpWinner(
 	return null;
 }
 
+/* =========================================================
+   LOWEST SCORE WINS
+   Golf / Discgolf
+========================================================= */
+
 function getLowestScoreWinner(
 	players: { name: string }[],
 	values: ScoreCellValue[][],
 ) {
-	if (players.length === 0) return null;
-	if (values.length === 0) return null;
+	if (players.length === 0) {
+		return null;
+	}
+
+	if (values.length === 0) {
+		return null;
+	}
 
 	const allFilled = values.every((row) => row.every((cell) => cell !== ""));
-	if (!allFilled) return null;
+
+	if (!allFilled) {
+		return null;
+	}
 
 	const totals = players.map((_, playerIndex) =>
 		values.reduce((sum, row) => {
 			const value = row[playerIndex];
+
 			return sum + (typeof value === "number" ? value : 0);
 		}, 0),
 	);
@@ -162,7 +207,10 @@ function getLowestScoreWinner(
 	const lowestScore = Math.min(...totals);
 
 	const winnerIndices = totals
-		.map((score, index) => ({ score, index }))
+		.map((score, index) => ({
+			score,
+			index,
+		}))
 		.filter((item) => item.score === lowestScore)
 		.map((item) => item.index);
 
@@ -184,6 +232,10 @@ function getLowestScoreWinner(
 		message: `Oavgjort! ${tiedNames} vann med ${lowestScore} poäng.`,
 	};
 }
+
+/* =========================================================
+   WHIST
+========================================================= */
 
 function getWhistWinner(
 	players: { name: string }[],
@@ -227,19 +279,33 @@ function getWhistWinner(
 	};
 }
 
+/* =========================================================
+   HIGHEST SCORE WINS
+   Jazz / Gigant Yatzy
+========================================================= */
+
 function getHighestScoreWinner(
 	players: { name: string }[],
 	values: ScoreCellValue[][],
 ) {
-	if (players.length === 0) return null;
-	if (values.length === 0) return null;
+	if (players.length === 0) {
+		return null;
+	}
+
+	if (values.length === 0) {
+		return null;
+	}
 
 	const allFilled = values.every((row) => row.every((cell) => cell !== ""));
-	if (!allFilled) return null;
+
+	if (!allFilled) {
+		return null;
+	}
 
 	const totals = players.map((_, playerIndex) =>
 		values.reduce((sum, row) => {
 			const value = row[playerIndex];
+
 			return sum + (typeof value === "number" ? value : 0);
 		}, 0),
 	);
@@ -247,7 +313,10 @@ function getHighestScoreWinner(
 	const highestScore = Math.max(...totals);
 
 	const winnerIndices = totals
-		.map((score, index) => ({ score, index }))
+		.map((score, index) => ({
+			score,
+			index,
+		}))
 		.filter((item) => item.score === highestScore)
 		.map((item) => item.index);
 
@@ -270,6 +339,10 @@ function getHighestScoreWinner(
 	};
 }
 
+/* =========================================================
+   TREBELLER
+========================================================= */
+
 function getTrebellerWinner(
 	players: { name: string }[],
 	values: ScoreCellValue[][],
@@ -278,22 +351,31 @@ function getTrebellerWinner(
 		row.every((cell) => cell !== ""),
 	);
 
-	if (completedRounds.length < 18) return null;
+	if (completedRounds.length < 18) {
+		return null;
+	}
 
 	const totals = players.map((_, playerIndex) =>
 		completedRounds.reduce((sum, row) => {
 			const value = row[playerIndex];
 
-			if (typeof value !== "number") return sum;
+			if (typeof value !== "number") {
+				return sum;
+			}
 
 			const score = (value % 100) - 50;
+
 			return sum + score;
 		}, 0),
 	);
 
 	const highestScore = Math.max(...totals);
+
 	const winnerIndices = totals
-		.map((score, index) => ({ score, index }))
+		.map((score, index) => ({
+			score,
+			index,
+		}))
 		.filter((item) => item.score === highestScore)
 		.map((item) => item.index);
 
@@ -316,19 +398,32 @@ function getTrebellerWinner(
 	};
 }
 
+/* =========================================================
+   YATZY
+========================================================= */
+
 function getYatzyWinner(
 	players: { name: string }[],
 	values: ScoreCellValue[][],
 ) {
-	if (players.length === 0) return null;
-	if (values.length === 0) return null;
+	if (players.length === 0) {
+		return null;
+	}
+
+	if (values.length === 0) {
+		return null;
+	}
 
 	const allFilled = values.every((row) => row.every((cell) => cell !== ""));
-	if (!allFilled) return null;
+
+	if (!allFilled) {
+		return null;
+	}
 
 	const getUpperSum = (playerIndex: number) =>
 		[0, 1, 2, 3, 4, 5].reduce((sum, rowIndex) => {
 			const value = values[rowIndex]?.[playerIndex];
+
 			return sum + (typeof value === "number" ? value : 0);
 		}, 0);
 
@@ -337,8 +432,12 @@ function getYatzyWinner(
 
 	const totals = players.map((_, playerIndex) => {
 		const rowsTotal = values.reduce((sum, row, rowIndex) => {
-			if (rowIndex === 6) return sum;
+			if (rowIndex === 6) {
+				return sum;
+			}
+
 			const value = row[playerIndex];
+
 			return sum + (typeof value === "number" ? value : 0);
 		}, 0);
 
@@ -348,7 +447,10 @@ function getYatzyWinner(
 	const highestScore = Math.max(...totals);
 
 	const winnerIndices = totals
-		.map((score, index) => ({ score, index }))
+		.map((score, index) => ({
+			score,
+			index,
+		}))
 		.filter((item) => item.score === highestScore)
 		.map((item) => item.index);
 
@@ -371,25 +473,37 @@ function getYatzyWinner(
 	};
 }
 
+/* =========================================================
+   10 000
+========================================================= */
+
 function getTenThousandWinner(
 	players: { name: string }[],
 	values: ScoreCellValue[][],
 ) {
-	if (players.length === 0 || values.length === 0) return null;
+	if (players.length === 0 || values.length === 0) {
+		return null;
+	}
 
 	const totals = players.map((_, playerIndex) =>
 		values.reduce((sum, row) => {
 			const value = row[playerIndex];
+
 			return sum + (typeof value === "number" ? value : 0);
 		}, 0),
 	);
 
 	const highestScore = Math.max(...totals);
 
-	if (highestScore < 10000) return null;
+	if (highestScore < 10000) {
+		return null;
+	}
 
 	const winnerIndices = totals
-		.map((score, index) => ({ score, index }))
+		.map((score, index) => ({
+			score,
+			index,
+		}))
 		.filter((item) => item.score === highestScore)
 		.map((item) => item.index);
 
@@ -412,27 +526,41 @@ function getTenThousandWinner(
 	};
 }
 
+/* =========================================================
+   PAGE
+========================================================= */
+
 export default function ScorecardPage() {
 	const { session, setSession } = useGameSession();
+
 	const navigate = useNavigate();
 
 	const game = session?.game;
+
 	const players = session?.players ?? emptyPlayers;
 
 	const gameId = String(game?.id ?? "").toLowerCase();
+
 	const protocolEntry = protocolRegistry[gameId];
 
+	/* =====================================================
+	   STORAGE KEY
+	===================================================== */
+
 	const storageKey = useMemo(() => {
-		if (!game) return "";
+		if (!game || players.length === 0) {
+			return "";
+		}
 
-		const playerKey = players
-			.map((player) => player.name.trim().toLowerCase())
-			.join("|");
-
-		return `scorely:${String(game.id).toLowerCase()}:${playerKey}`;
+		return getGameStorageKey(game, players);
 	}, [game, players]);
 
+	/* =====================================================
+	   PROTOCOL IDENTIFIERS
+	===================================================== */
+
 	const protocolIdRef = useRef<string>(crypto.randomUUID());
+
 	const createdAtRef = useRef<string>(new Date().toISOString());
 
 	useEffect(() => {
@@ -445,6 +573,15 @@ export default function ScorecardPage() {
 		}
 	}, [session?.protocolId, session?.protocolCreatedAt]);
 
+	/*
+		If this session doesn't yet have a
+		protocolId, save the generated ID
+		into GameSessionContext.
+
+		This means a reload keeps using
+		the same saved protocol.
+	*/
+
 	useEffect(() => {
 		if (!session || !game || players.length === 0) {
 			return;
@@ -456,23 +593,40 @@ export default function ScorecardPage() {
 
 		setSession({
 			...session,
+
 			protocolId: session.protocolId ?? protocolIdRef.current,
+
 			protocolCreatedAt:
 				session.protocolCreatedAt ?? createdAtRef.current,
 		});
 	}, [game, players.length, session, setSession]);
 
+	/* =====================================================
+	   STATE
+	===================================================== */
+
 	const [values, setValues] = useState<ScoreCellValue[][]>([]);
+
 	const [history, setHistory] = useState<ScoreCellValue[][][]>([]);
+
 	const [toasts, setToasts] = useState<ToastMessage[]>([]);
+
 	const toastIdRef = useRef(0);
+
 	const announcedWinnerRef = useRef("");
 
 	const hasLoadedInitialValuesRef = useRef(false);
+
 	const hasUserMadeChangeRef = useRef(false);
 
+	/* =====================================================
+	   WINNER
+	===================================================== */
+
 	const winner = useMemo(() => {
-		if (!game || players.length === 0) return null;
+		if (!game || players.length === 0) {
+			return null;
+		}
 
 		if (gameId === "chicago") {
 			return getChicagoWinner(players, values);
@@ -515,29 +669,47 @@ export default function ScorecardPage() {
 		}
 
 		return null;
-		
 	}, [game, gameId, players, values]);
 
 	const winnerMessage = winner?.message ?? "";
+
 	const isProtocolLocked = winnerMessage !== "";
+
+	/* =====================================================
+	   TOAST
+	===================================================== */
 
 	const showToast = (text: string) => {
 		const id = ++toastIdRef.current;
 
-		setToasts((prev) => [...prev, { id, text }]);
+		setToasts((prev) => [
+			...prev,
+			{
+				id,
+				text,
+			},
+		]);
 
 		window.setTimeout(() => {
 			setToasts((prev) => prev.filter((toast) => toast.id !== id));
 		}, 2600);
 	};
 
+	/* =====================================================
+	   BUILD SAVED PROTOCOL
+	===================================================== */
+
 	const buildSavedProtocol = useCallback(
 		(
 			nextValues: ScoreCellValue[][],
+
 			statusOverride?: "Pågående" | "Avslutad",
+
 			winnerNameOverride?: string | null,
 		): SavedProtocol | null => {
-			if (!game) return null;
+			if (!game) {
+				return null;
+			}
 
 			let resolvedWinner:
 				| ReturnType<typeof getChicagoWinner>
@@ -547,6 +719,7 @@ export default function ScorecardPage() {
 				| ReturnType<typeof getHighestScoreWinner>
 				| ReturnType<typeof getTrebellerWinner>
 				| ReturnType<typeof getYatzyWinner>
+				| ReturnType<typeof getTenThousandWinner>
 				| ReturnType<typeof getWhistWinner>
 				| null = null;
 
@@ -564,42 +737,67 @@ export default function ScorecardPage() {
 				resolvedWinner = getTrebellerWinner(players, nextValues);
 			} else if (gameId === "yatzy") {
 				resolvedWinner = getYatzyWinner(players, nextValues);
+			} else if (gameId === "gigant-yatzy") {
+				resolvedWinner = getHighestScoreWinner(players, nextValues);
+			} else if (gameId === "10000") {
+				resolvedWinner = getTenThousandWinner(players, nextValues);
 			} else if (gameId === "4-manswhist" || gameId === "2-manswhist") {
 				resolvedWinner = getWhistWinner(players, nextValues);
 			}
 
-		
-	
 			return {
 				id: protocolIdRef.current,
+
 				gameId: String(game.id),
+
 				gameName: game.name,
+
 				gameType: game.id as SavedProtocol["gameType"],
+
 				category: game.category,
-				players: players.map((player) => ({ name: player.name })),
+
+				players: players.map((player) => ({
+					name: player.name,
+				})),
+
 				values: cloneValues(nextValues),
+
 				createdAt: createdAtRef.current,
+
 				updatedAt: new Date().toISOString(),
+
 				status:
 					statusOverride ??
 					(resolvedWinner ? "Avslutad" : "Pågående"),
+
 				winnerName:
 					winnerNameOverride !== undefined
 						? winnerNameOverride
 						: (resolvedWinner?.name ?? null),
+
 				route: `/game/${String(game.id).toLowerCase()}`,
 			};
 		},
 		[game, gameId, players],
 	);
 
+	/* =====================================================
+	   LOAD INITIAL VALUES / RESTORE AUTOSAVE
+	===================================================== */
+
 	useEffect(() => {
+		hasLoadedInitialValuesRef.current = false;
+
 		if (!game || !protocolEntry || players.length === 0) {
 			setValues([]);
 			setHistory([]);
+
 			announcedWinnerRef.current = "";
+
 			hasLoadedInitialValuesRef.current = true;
+
 			hasUserMadeChangeRef.current = false;
+
 			return;
 		}
 
@@ -609,10 +807,15 @@ export default function ScorecardPage() {
 
 		if (!storageKey) {
 			setValues(fallbackValues);
+
 			setHistory([]);
+
 			announcedWinnerRef.current = "";
+
 			hasLoadedInitialValuesRef.current = true;
+
 			hasUserMadeChangeRef.current = false;
+
 			return;
 		}
 
@@ -620,10 +823,15 @@ export default function ScorecardPage() {
 
 		if (!raw) {
 			setValues(fallbackValues);
+
 			setHistory([]);
+
 			announcedWinnerRef.current = "";
+
 			hasLoadedInitialValuesRef.current = true;
+
 			hasUserMadeChangeRef.current = false;
+
 			return;
 		}
 
@@ -639,22 +847,47 @@ export default function ScorecardPage() {
 				)
 			) {
 				setValues(parsed);
+
 				setHistory([]);
+
 				announcedWinnerRef.current = "";
+
 				hasLoadedInitialValuesRef.current = true;
+
 				hasUserMadeChangeRef.current = false;
+
 				return;
 			}
 		} catch {
-			// ignore broken localStorage data
+			/*
+				Broken localStorage data.
+				Scorely simply falls back
+				to a fresh protocol.
+			*/
 		}
 
 		setValues(fallbackValues);
+
 		setHistory([]);
+
 		announcedWinnerRef.current = "";
+
 		hasLoadedInitialValuesRef.current = true;
+
 		hasUserMadeChangeRef.current = false;
 	}, [game, players.length, protocolEntry, storageKey]);
+
+	/* =====================================================
+	   AUTOSAVE
+
+	   Runs whenever values changes.
+
+	   This is NOT the same thing as
+	   pressing "Spara".
+
+	   Autosave protects the currently
+	   active game against reload.
+	===================================================== */
 
 	useEffect(() => {
 		if (!hasLoadedInitialValuesRef.current) {
@@ -668,14 +901,46 @@ export default function ScorecardPage() {
 		try {
 			localStorage.setItem(storageKey, JSON.stringify(values));
 		} catch {
-			// Om localStorage skulle vara otillgängligt
-			// ska spelet ändå fortsätta fungera.
+			/*
+				If localStorage is unavailable,
+				the game should still work.
+			*/
 		}
 	}, [storageKey, values]);
+
+	/* =====================================================
+	   ACTIVE / FINISHED SESSION STATUS
+
+	   This is what prevents a completed
+	   game from appearing as "Pågående spel"
+	   on Home.
+	===================================================== */
+
+	useEffect(() => {
+		if (!session || players.length === 0) {
+			return;
+		}
+
+		const nextStatus = winnerMessage ? "finished" : "active";
+
+		if (session.status === nextStatus) {
+			return;
+		}
+
+		setSession({
+			...session,
+			status: nextStatus,
+		});
+	}, [players.length, session, setSession, winnerMessage]);
+
+	/* =====================================================
+	   WINNER ANNOUNCEMENT + AUTO SAVE FINISHED PROTOCOL
+	===================================================== */
 
 	useEffect(() => {
 		if (!winnerMessage) {
 			announcedWinnerRef.current = "";
+
 			return;
 		}
 
@@ -688,7 +953,19 @@ export default function ScorecardPage() {
 		}
 
 		announcedWinnerRef.current = winnerMessage;
+
 		showToast(winnerMessage);
+
+		/*
+			Don't automatically create a
+			SavedProtocol simply because an
+			old finished game was restored
+			from localStorage.
+
+			Only save automatically if this
+			game was actually changed during
+			this session.
+		*/
 
 		if (!hasUserMadeChangeRef.current) {
 			return;
@@ -705,6 +982,10 @@ export default function ScorecardPage() {
 		}
 	}, [buildSavedProtocol, winnerMessage, winner, values]);
 
+	/* =====================================================
+	   NO SESSION
+	===================================================== */
+
 	if (!game || players.length === 0) {
 		return (
 			<section className="min-h-screen w-full bg-[radial-gradient(circle_at_top,_rgba(233,246,239,0.95)_0%,_rgba(219,239,226,0.96)_45%,_rgba(210,233,217,0.98)_100%)]">
@@ -713,6 +994,7 @@ export default function ScorecardPage() {
 						<h1 className="text-2xl font-black text-slate-900">
 							Ingen spelomgång hittades
 						</h1>
+
 						<p className="mt-3 text-slate-500">
 							Välj spel och spelare först.
 						</p>
@@ -730,6 +1012,10 @@ export default function ScorecardPage() {
 		);
 	}
 
+	/* =====================================================
+	   MISSING PROTOCOL
+	===================================================== */
+
 	if (!protocolEntry) {
 		return (
 			<section className="min-h-screen w-full bg-[radial-gradient(circle_at_top,_rgba(233,246,239,0.95)_0%,_rgba(219,239,226,0.96)_45%,_rgba(210,233,217,0.98)_100%)]">
@@ -738,6 +1024,7 @@ export default function ScorecardPage() {
 						<h1 className="text-2xl font-black text-slate-900">
 							Protokoll saknas
 						</h1>
+
 						<p className="mt-3 text-slate-500">
 							Det finns inget registrerat protokoll för{" "}
 							{game.name} än.
@@ -758,25 +1045,38 @@ export default function ScorecardPage() {
 
 	const ProtocolComponent = protocolEntry.component;
 
+	/* =====================================================
+	   HISTORY
+	===================================================== */
+
 	const pushHistory = (snapshot: ScoreCellValue[][]) => {
 		setHistory((prev) => [...prev.slice(-49), cloneValues(snapshot)]);
 	};
+
+	/* =====================================================
+	   CELL CHANGE
+	===================================================== */
 
 	const handleCellChange = (
 		rowIndex: number,
 		playerIndex: number,
 		value: ScoreCellValue,
 	) => {
-		if (isProtocolLocked) return;
+		if (isProtocolLocked) {
+			return;
+		}
 
 		hasUserMadeChangeRef.current = true;
 
 		setValues((prev) => {
 			const prevClone = cloneValues(prev);
+
 			pushHistory(prevClone);
 
 			return prev.map((row, currentRowIndex) => {
-				if (currentRowIndex !== rowIndex) return row;
+				if (currentRowIndex !== rowIndex) {
+					return row;
+				}
 
 				return row.map((cell, currentPlayerIndex) =>
 					currentPlayerIndex === playerIndex ? value : cell,
@@ -785,19 +1085,31 @@ export default function ScorecardPage() {
 		});
 	};
 
+	/* =====================================================
+	   BATCH CHANGE
+	===================================================== */
+
 	const handleBatchChange = (
 		updater: (prev: ScoreCellValue[][]) => ScoreCellValue[][],
 	) => {
-		if (isProtocolLocked) return;
+		if (isProtocolLocked) {
+			return;
+		}
 
 		hasUserMadeChangeRef.current = true;
 
 		setValues((prev) => {
 			const prevClone = cloneValues(prev);
+
 			pushHistory(prevClone);
+
 			return updater(cloneValues(prev));
 		});
 	};
+
+	/* =====================================================
+	   UNDO
+	===================================================== */
 
 	const handleUndo = () => {
 		setHistory((prevHistory) => {
@@ -805,11 +1117,19 @@ export default function ScorecardPage() {
 				return prevHistory;
 			}
 
+			hasUserMadeChangeRef.current = true;
+
 			const previousValues = prevHistory[prevHistory.length - 1];
+
 			setValues(cloneValues(previousValues));
+
 			return prevHistory.slice(0, -1);
 		});
 	};
+
+	/* =====================================================
+	   RESET
+	===================================================== */
 
 	const handleReset = () => {
 		const resetValues = protocolEntry.createInitialValues(players.length);
@@ -822,23 +1142,59 @@ export default function ScorecardPage() {
 
 		setValues(resetValues);
 
+		/*
+			Remove the existing autosave.
+
+			The autosave effect will then
+			store the newly reset empty
+			values as the current state.
+		*/
+
 		if (storageKey) {
-			localStorage.removeItem(storageKey);
+			try {
+				localStorage.removeItem(storageKey);
+			} catch {
+				// Ignore storage error.
+			}
 		}
 	};
 
-	const handleSave = () => {
-		if (!storageKey) return;
+	/* =====================================================
+	   MANUAL SAVE
 
-		localStorage.setItem(storageKey, JSON.stringify(values));
+	   This is different from autosave.
+
+	   Autosave:
+	   protects the active game.
+
+	   Manual save:
+	   adds/updates it under
+	   "Sparade protokoll".
+	===================================================== */
+
+	const handleSave = () => {
+		if (!storageKey) {
+			return;
+		}
+
+		try {
+			localStorage.setItem(storageKey, JSON.stringify(values));
+		} catch {
+			// Game still works.
+		}
 
 		const protocol = buildSavedProtocol(values);
+
 		if (protocol) {
 			ProtocolService.save(protocol);
 		}
 
 		showToast("Protokollet har sparats!");
 	};
+
+	/* =====================================================
+	   RENDER
+	===================================================== */
 
 	return (
 		<ScorecardLayout

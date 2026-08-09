@@ -103,10 +103,19 @@ export default function SelectPlayers() {
 			scores: [],
 		}));
 
+	
 		setSession({
 			...session,
+
 			game,
+
 			players,
+
+			protocolId: crypto.randomUUID(),
+
+			protocolCreatedAt: new Date().toISOString(),
+
+			status: "active",
 		});
 
 		const gameRoutes: Record<string, string> = {
