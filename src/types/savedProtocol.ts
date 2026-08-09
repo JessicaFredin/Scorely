@@ -26,14 +26,16 @@
 // 	updatedAt?: string;
 // }
 
-export type SavedProtocolGameType =
-	| "500"
-	| "10000"
-	| "chicago"
-	| "discGolf"
-	| "jazz"
-	| "plump"
-	| "trebeller";
+	export type SavedProtocolGameType =
+		| "500"
+		| "10000"
+		| "chicago"
+		| "discGolf"
+		| "jazz"
+		| "plump"
+		| "trebeller"
+		| "4-manswhist"
+		| "2-manswhist";
 
 export type SavedProtocolStatus = "Pågående" | "Avslutad";
 

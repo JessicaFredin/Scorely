@@ -120,6 +120,8 @@ export default function SelectPlayers() {
 			golf: "/game/golf",
 			yatzy: "/game/yatzy",
 			"gigant-yatzy": "/game/gigant-yatzy",
+			"4-manswhist": "/game/4-manswhist",
+			"2-manswhist": "/game/2-manswhist",
 		};
 
 		const nextRoute = gameRoutes[String(game.id)];

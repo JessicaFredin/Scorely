@@ -8,6 +8,7 @@ import YatzyProtocol from "../protocols/YatzyProtocol";
 import FiveHundredProtocol from "../protocols/FiveHundredProtocol";
 import GigantYatzyProtocol from "../protocols/GigantYatzyProtocol";
 import TenThousandProtocol from "../protocols/TenThousandProtocol";
+import WhistProtocol from "../protocols/WhistProtocol";
 
 export type ScoreCellValue = number | "";
 
@@ -48,39 +49,58 @@ export const protocolRegistry: Record<string, ProtocolEntry> = {
 		component: GolfProtocol,
 		createInitialValues: (playerCount) => createMatrix(18, playerCount),
 	},
+
 	discgolf: {
 		component: GolfProtocol,
 		createInitialValues: (playerCount) => createMatrix(18, playerCount),
 	},
+
 	chicago: {
 		component: ChicagoProtocol,
 		createInitialValues: (playerCount) => createMatrix(60, playerCount),
 	},
+
 	"500": {
 		component: FiveHundredProtocol,
 		createInitialValues: (playerCount) => createMatrix(80, playerCount),
 	},
+
 	plump: {
 		component: PlumpProtocol,
 		createInitialValues: (playerCount) =>
 			createMatrix(19 + playerCount - 1, playerCount),
 	},
+
 	jazz: {
 		component: JazzProtocol,
 		createInitialValues: (playerCount) => createMatrix(7, playerCount),
 	},
+
 	trebeller: {
 		component: TrebellerProtocol,
 		createInitialValues: (playerCount) => createMatrix(18, playerCount),
 	},
+
 	yatzy: {
 		component: YatzyProtocol,
 		createInitialValues: (playerCount) => createMatrix(16, playerCount),
 	},
+
 	"10000": {
 		component: TenThousandProtocol,
 		createInitialValues: (playerCount) => createMatrix(5, playerCount),
 	},
+
+	"4-manswhist": {
+		component: WhistProtocol,
+		createInitialValues: (playerCount) => createMatrix(40, playerCount),
+	},
+
+	"2-manswhist": {
+		component: WhistProtocol,
+		createInitialValues: (playerCount) => createMatrix(40, playerCount),
+	},
+
 	"gigant-yatzy": {
 		component: GigantYatzyProtocol,
 		createInitialValues: (playerCount) => createMatrix(47, playerCount),

@@ -185,6 +185,48 @@ function getLowestScoreWinner(
 	};
 }
 
+function getWhistWinner(
+	players: { name: string }[],
+	values: ScoreCellValue[][],
+) {
+	if (players.length !== 2 && players.length !== 4) {
+		return null;
+	}
+
+	const sides =
+		players.length === 4
+			? [
+					[0, 2],
+					[1, 3],
+				]
+			: [[0], [1]];
+
+	const totals = sides.map((side) => {
+		const playerIndex = side[0];
+
+		return values.reduce((sum, row) => {
+			const value = row[playerIndex];
+
+			return sum + (typeof value === "number" ? value : 0);
+		}, 0);
+	});
+
+	const winnerSide = totals.findIndex((total) => total >= 13);
+
+	if (winnerSide === -1) {
+		return null;
+	}
+
+	const winnerName = sides[winnerSide]
+		.map((index) => players[index].name)
+		.join(" & ");
+
+	return {
+		name: winnerName,
+		message: `Grattis! ${winnerName} har vunnit whisten med ${totals[winnerSide]} poäng.`,
+	};
+}
+
 function getHighestScoreWinner(
 	players: { name: string }[],
 	values: ScoreCellValue[][],
@@ -451,7 +493,12 @@ export default function ScorecardPage() {
 			return getTenThousandWinner(players, values);
 		}
 
+		if (gameId === "4-manswhist" || gameId === "2-manswhist") {
+			return getWhistWinner(players, values);
+		}
+
 		return null;
+		
 	}, [game, gameId, players, values]);
 
 	const winnerMessage = winner?.message ?? "";
@@ -483,6 +530,7 @@ export default function ScorecardPage() {
 				| ReturnType<typeof getHighestScoreWinner>
 				| ReturnType<typeof getTrebellerWinner>
 				| ReturnType<typeof getYatzyWinner>
+				| ReturnType<typeof getWhistWinner>
 				| null = null;
 
 			if (gameId === "chicago") {
@@ -499,6 +547,8 @@ export default function ScorecardPage() {
 				resolvedWinner = getTrebellerWinner(players, nextValues);
 			} else if (gameId === "yatzy") {
 				resolvedWinner = getYatzyWinner(players, nextValues);
+			} else if (gameId === "4-manswhist" || gameId === "2-manswhist") {
+				resolvedWinner = getWhistWinner(players, nextValues);
 			}
 
 		
