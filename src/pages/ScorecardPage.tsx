@@ -527,6 +527,66 @@ function getTenThousandWinner(
 }
 
 /* =========================================================
+   30
+========================================================= */
+
+function getThirtyWinner(
+	players: { name: string }[],
+	values: ScoreCellValue[][],
+) {
+	if (players.length < 2) {
+		return null;
+	}
+
+	const remaining = players.map(
+		(_, playerIndex) =>
+			values.reduce(
+				(points, row) => {
+					const value =
+						row[playerIndex];
+
+					return Math.max(
+						0,
+						points +
+							(typeof value ===
+							"number"
+								? value
+								: 0),
+					);
+				},
+				30,
+			),
+	);
+
+	const activePlayers = remaining
+		.map((points, index) => ({
+			points,
+			index,
+		}))
+		.filter(
+			(item) =>
+				item.points > 0,
+		);
+
+	if (
+		activePlayers.length !== 1
+	) {
+		return null;
+	}
+
+	const winnerIndex =
+		activePlayers[0].index;
+
+	const winnerName =
+		players[winnerIndex].name;
+
+	return {
+		name: winnerName,
+		message: `Grattis! ${winnerName} har vunnit 30 med ${remaining[winnerIndex]} poäng kvar.`,
+	};
+}
+
+/* =========================================================
    PAGE
 ========================================================= */
 
@@ -668,6 +728,10 @@ export default function ScorecardPage() {
 			return getWhistWinner(players, values);
 		}
 
+		if (gameId === "30") {
+			return getThirtyWinner(players, values);
+		}
+
 		return null;
 	}, [game, gameId, players, values]);
 
@@ -721,6 +785,7 @@ export default function ScorecardPage() {
 				| ReturnType<typeof getYatzyWinner>
 				| ReturnType<typeof getTenThousandWinner>
 				| ReturnType<typeof getWhistWinner>
+				| ReturnType<typeof getThirtyWinner>
 				| null = null;
 
 			if (gameId === "chicago") {
@@ -743,6 +808,8 @@ export default function ScorecardPage() {
 				resolvedWinner = getTenThousandWinner(players, nextValues);
 			} else if (gameId === "4-manswhist" || gameId === "2-manswhist") {
 				resolvedWinner = getWhistWinner(players, nextValues);
+			} else if (gameId === "30") {
+				resolvedWinner = getThirtyWinner(players, nextValues);
 			}
 
 			return {
@@ -838,12 +905,13 @@ export default function ScorecardPage() {
 		try {
 			const parsed: unknown = JSON.parse(raw);
 
-			const hasValidRowCount =
-				gameId === "10000"
-					? Array.isArray(parsed) &&
-						parsed.length >= fallbackValues.length
-					: Array.isArray(parsed) &&
-						parsed.length === fallbackValues.length;
+		const hasDynamicRows = gameId === "10000" || gameId === "30";
+
+		const hasValidRowCount = hasDynamicRows
+			? Array.isArray(parsed) && parsed.length >= fallbackValues.length
+			: Array.isArray(parsed) && parsed.length === fallbackValues.length;
+			
+					
 
 			if (
 				hasValidRowCount &&

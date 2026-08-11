@@ -60,6 +60,8 @@ function App() {
 
 				<Route path="/game/2-manswhist" element={<ScorecardPage />} />
 
+				<Route path="/game/30" element={<ScorecardPage />} />
+
 				<Route path="*" element={<NotFound />} />
 			</Routes>
 		</BrowserRouter>

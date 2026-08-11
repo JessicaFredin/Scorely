@@ -9,6 +9,7 @@ import FiveHundredProtocol from "../protocols/FiveHundredProtocol";
 import GigantYatzyProtocol from "../protocols/GigantYatzyProtocol";
 import TenThousandProtocol from "../protocols/TenThousandProtocol";
 import WhistProtocol from "../protocols/WhistProtocol";
+import ThirtyProtocol from "../protocols/ThirtyProtocol";
 
 export type ScoreCellValue = number | "";
 
@@ -104,5 +105,10 @@ export const protocolRegistry: Record<string, ProtocolEntry> = {
 	"gigant-yatzy": {
 		component: GigantYatzyProtocol,
 		createInitialValues: (playerCount) => createMatrix(47, playerCount),
+	},
+
+	"30": {
+		component: ThirtyProtocol,
+		createInitialValues: (playerCount) => createMatrix(1, playerCount),
 	},
 };

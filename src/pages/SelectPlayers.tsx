@@ -131,6 +131,8 @@ export default function SelectPlayers() {
 			"gigant-yatzy": "/game/gigant-yatzy",
 			"4-manswhist": "/game/4-manswhist",
 			"2-manswhist": "/game/2-manswhist",
+			"30": "/game/30",
+		
 		};
 
 		const nextRoute = gameRoutes[String(game.id)];
