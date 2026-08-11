@@ -132,7 +132,7 @@ export default function SelectPlayers() {
 			"4-manswhist": "/game/4-manswhist",
 			"2-manswhist": "/game/2-manswhist",
 			"30": "/game/30",
-		
+			"maxi-yatzy": "/game/maxi-yatzy",
 		};
 
 		const nextRoute = gameRoutes[String(game.id)];

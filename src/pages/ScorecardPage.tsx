@@ -732,6 +732,11 @@ export default function ScorecardPage() {
 			return getThirtyWinner(players, values);
 		}
 
+		if (gameId === "maxi-yatzy") {
+			return getHighestScoreWinner(players, values);
+		}
+
+
 		return null;
 	}, [game, gameId, players, values]);
 
@@ -810,6 +815,8 @@ export default function ScorecardPage() {
 				resolvedWinner = getWhistWinner(players, nextValues);
 			} else if (gameId === "30") {
 				resolvedWinner = getThirtyWinner(players, nextValues);
+			} else if (gameId === "maxi-yatzy") {
+				resolvedWinner = getHighestScoreWinner(players, nextValues);
 			}
 
 			return {

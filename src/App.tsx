@@ -62,6 +62,8 @@ function App() {
 
 				<Route path="/game/30" element={<ScorecardPage />} />
 
+				<Route path="/game/maxi-yatzy" element={<ScorecardPage />} />
+				
 				<Route path="*" element={<NotFound />} />
 			</Routes>
 		</BrowserRouter>
