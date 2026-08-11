@@ -55,15 +55,13 @@ function ensureMinimumRows(
 	return next;
 }
 
-function isRowFilled(row: ScoreCellValue[]) {
-	return row.every((cell) => cell !== "");
-}
-
 function getCommittedRoundScore(
 	previousTotal: number,
 	rawValue: ScoreCellValue,
 ) {
-	if (typeof rawValue !== "number") return 0;
+	if (typeof rawValue !== "number") {
+		return 0;
+	}
 
 	if (previousTotal >= ENTRY_TARGET) {
 		return rawValue;
@@ -78,7 +76,9 @@ function getPlayerTotals(values: ScoreCellValue[][], playerCount: number) {
 
 		for (let rowIndex = 0; rowIndex < values.length; rowIndex++) {
 			const rawValue = values[rowIndex]?.[playerIndex] ?? "";
+
 			const committed = getCommittedRoundScore(runningTotal, rawValue);
+
 			runningTotal += committed;
 		}
 
@@ -99,7 +99,9 @@ function getPlayerTotalBeforeRow(
 		currentRowIndex++
 	) {
 		const rawValue = values[currentRowIndex]?.[playerIndex] ?? "";
+
 		const committed = getCommittedRoundScore(runningTotal, rawValue);
+
 		runningTotal += committed;
 	}
 
@@ -119,7 +121,9 @@ function getPlayerTotalAfterRow(
 		currentRowIndex++
 	) {
 		const rawValue = values[currentRowIndex]?.[playerIndex] ?? "";
+
 		const committed = getCommittedRoundScore(runningTotal, rawValue);
+
 		runningTotal += committed;
 	}
 
@@ -146,14 +150,18 @@ function getCellDisplay(
 	playerIndex: number,
 ) {
 	const rawValue = values[rowIndex]?.[playerIndex] ?? "";
+
 	const totalBefore = getPlayerTotalBeforeRow(values, playerIndex, rowIndex);
+
 	const totalAfter = getPlayerTotalAfterRow(values, playerIndex, rowIndex);
 
 	return {
 		rawValue,
 		totalBefore,
 		totalAfter,
+
 		isOnBoardBeforeRow: totalBefore >= ENTRY_TARGET,
+
 		isOnBoardAfterRow: totalAfter >= ENTRY_TARGET,
 	};
 }
@@ -165,8 +173,13 @@ function normalizeEntryValue(value: number, isOnBoard: boolean) {
 		return safeValue;
 	}
 
-	if (safeValue === 0) return 0;
-	if (safeValue < ENTRY_TARGET) return ENTRY_TARGET;
+	if (safeValue === 0) {
+		return 0;
+	}
+
+	if (safeValue < ENTRY_TARGET) {
+		return ENTRY_TARGET;
+	}
 
 	return safeValue;
 }
@@ -186,16 +199,21 @@ export default function TenThousandProtocol({
 	const [modal, setModal] = useState<ModalState>(null);
 
 	useEffect(() => {
-		if (!modal) return;
+		if (!modal) {
+			return;
+		}
 
 		const previousBodyOverflow = document.body.style.overflow;
+
 		const previousHtmlOverflow = document.documentElement.style.overflow;
 
 		document.body.style.overflow = "hidden";
+
 		document.documentElement.style.overflow = "hidden";
 
 		return () => {
 			document.body.style.overflow = previousBodyOverflow;
+
 			document.documentElement.style.overflow = previousHtmlOverflow;
 		};
 	}, [modal]);
@@ -211,19 +229,24 @@ export default function TenThousandProtocol({
 	);
 
 	const openCell = (rowIndex: number, playerIndex: number) => {
-		if (isLocked) return;
+		if (isLocked) {
+			return;
+		}
 
 		const currentValue = safeValues[rowIndex]?.[playerIndex];
+
 		const totalBefore = getPlayerTotalBeforeRow(
 			safeValues,
 			playerIndex,
 			rowIndex,
 		);
+
 		const isOnBoard = totalBefore >= ENTRY_TARGET;
 
 		setModal({
 			rowIndex,
 			playerIndex,
+
 			value:
 				typeof currentValue === "number"
 					? normalizeEntryValue(currentValue, isOnBoard)
@@ -231,13 +254,25 @@ export default function TenThousandProtocol({
 		});
 	};
 
-	const closeModal = () => setModal(null);
+	const closeModal = () => {
+		setModal(null);
+	};
 
 	const commitValue = (
 		rowIndex: number,
 		playerIndex: number,
 		nextValue: number,
 	) => {
+		/*
+			ScorecardPage skickar in
+			onBatchChange.
+
+			Vi använder det här eftersom
+			vi både kan ändra cellen OCH
+			lägga till en ny rad i samma
+			uppdatering.
+		*/
+
 		if (onBatchChange) {
 			onBatchChange((prev) => {
 				const next = ensureMinimumRows(prev, players.length);
@@ -256,14 +291,26 @@ export default function TenThousandProtocol({
 				);
 
 				const lastRowIndex = next.length - 1;
-				const lastRowFilled = isRowFilled(next[lastRowIndex]);
+
 				const winnerExists = hasWinner(next, players.length);
 
-				if (
-					rowIndex === lastRowIndex &&
-					lastRowFilled &&
-					!winnerExists
-				) {
+				/*
+						VIKTIGT:
+
+						Varje spelare är
+						oberoende.
+
+						Så fort NÅGON spelare
+						fyller i sin ruta på
+						den sista raden skapas
+						en ny rad.
+
+						Vi väntar alltså INTE
+						på att de andra spelarna
+						ska fylla i sina rutor.
+					*/
+
+				if (rowIndex === lastRowIndex && !winnerExists) {
 					next.push(createEmptyRow(players.length));
 				}
 
@@ -272,6 +319,11 @@ export default function TenThousandProtocol({
 
 			return;
 		}
+
+		/*
+			Fallback om komponenten någon
+			gång används utan onBatchChange.
+		*/
 
 		const totalBefore = getPlayerTotalBeforeRow(
 			safeValues,
@@ -310,6 +362,8 @@ export default function TenThousandProtocol({
 		<>
 			<div className="overflow-x-auto">
 				<div className="min-w-[760px] overflow-hidden rounded-[28px] border border-[#dbe5df] bg-white/70 shadow-[0_8px_24px_rgba(0,0,0,0.03)]">
+					{/* HEADER */}
+
 					<div
 						className="grid bg-[#e7f1eb]"
 						style={{
@@ -329,6 +383,8 @@ export default function TenThousandProtocol({
 							</div>
 						))}
 					</div>
+
+					{/* STATUS */}
 
 					<div
 						className="grid bg-[#eef7f1]"
@@ -355,6 +411,8 @@ export default function TenThousandProtocol({
 							</div>
 						))}
 					</div>
+
+					{/* ROUNDS */}
 
 					{safeValues.map((_, rowIndex) => {
 						const rowBg =
@@ -383,6 +441,11 @@ export default function TenThousandProtocol({
 										playerIndex,
 									);
 
+									const shownValue =
+										typeof display.rawValue === "number"
+											? display.rawValue
+											: 0;
+
 									return (
 										<button
 											key={`cell-${rowIndex}-${player.name}`}
@@ -397,25 +460,21 @@ export default function TenThousandProtocol({
 													: "hover:bg-emerald-50/40"
 											}`}
 										>
+											{/* ROUND SCORE */}
+
 											<span
 												className={`text-[1.1rem] font-black ${
-													typeof display.rawValue ===
-													"number"
-														? display.rawValue >=
-															ENTRY_TARGET
-															? "text-emerald-600"
-															: display.rawValue >
-																  0
-																? "text-slate-700"
-																: "text-slate-400"
-														: "text-slate-300"
+													shownValue >= ENTRY_TARGET
+														? "text-emerald-600"
+														: shownValue > 0
+															? "text-slate-700"
+															: "text-slate-400"
 												}`}
 											>
-												{typeof display.rawValue ===
-												"number"
-													? display.rawValue
-													: "—"}
+												{shownValue}
 											</span>
+
+											{/* RUNNING TOTAL */}
 
 											<span className="mt-1 text-[1rem] font-bold text-slate-400">
 												{display.totalAfter}
@@ -426,6 +485,8 @@ export default function TenThousandProtocol({
 							</div>
 						);
 					})}
+
+					{/* TOTAL */}
 
 					<div
 						className="grid bg-[#dff0e7]"
@@ -457,6 +518,8 @@ export default function TenThousandProtocol({
 				</div>
 			</div>
 
+			{/* SCORE MODAL */}
+
 			{modal &&
 				createPortal(
 					<div
@@ -485,16 +548,21 @@ export default function TenThousandProtocol({
 								)}
 							</div>
 
+							{/* +/- */}
+
 							<div className="mt-8 flex items-center justify-center gap-4">
 								<button
 									type="button"
 									onClick={() =>
 										setModal((prev) => {
-											if (!prev) return prev;
+											if (!prev) {
+												return prev;
+											}
 
 											if (!modalPlayerIsOnBoard) {
 												return {
 													...prev,
+
 													value:
 														prev.value <=
 														ENTRY_TARGET
@@ -505,6 +573,7 @@ export default function TenThousandProtocol({
 
 											return {
 												...prev,
+
 												value: Math.max(
 													0,
 													prev.value - 50,
@@ -531,11 +600,14 @@ export default function TenThousandProtocol({
 									type="button"
 									onClick={() =>
 										setModal((prev) => {
-											if (!prev) return prev;
+											if (!prev) {
+												return prev;
+											}
 
 											if (!modalPlayerIsOnBoard) {
 												return {
 													...prev,
+
 													value:
 														prev.value === 0
 															? ENTRY_TARGET
@@ -545,6 +617,7 @@ export default function TenThousandProtocol({
 
 											return {
 												...prev,
+
 												value: prev.value + 50,
 											};
 										})
@@ -554,6 +627,8 @@ export default function TenThousandProtocol({
 									<Plus size={22} />
 								</button>
 							</div>
+
+							{/* QUICK VALUES */}
 
 							<div className="mt-8 grid grid-cols-4 gap-3">
 								{quickScores.map((score) => {
@@ -572,6 +647,7 @@ export default function TenThousandProtocol({
 													prev
 														? {
 																...prev,
+
 																value: score,
 															}
 														: prev,
@@ -592,6 +668,8 @@ export default function TenThousandProtocol({
 									);
 								})}
 							</div>
+
+							{/* CONFIRM */}
 
 							<div className="mt-8">
 								<button
@@ -615,6 +693,8 @@ export default function TenThousandProtocol({
 									Bekräfta resultat
 								</button>
 							</div>
+
+							{/* CLOSE */}
 
 							<button
 								type="button"

@@ -836,17 +836,24 @@ export default function ScorecardPage() {
 		}
 
 		try {
-			const parsed = JSON.parse(raw);
+			const parsed: unknown = JSON.parse(raw);
+
+			const hasValidRowCount =
+				gameId === "10000"
+					? Array.isArray(parsed) &&
+						parsed.length >= fallbackValues.length
+					: Array.isArray(parsed) &&
+						parsed.length === fallbackValues.length;
 
 			if (
+				hasValidRowCount &&
 				Array.isArray(parsed) &&
-				parsed.length === fallbackValues.length &&
 				parsed.every(
-					(row) =>
+					(row: unknown) =>
 						Array.isArray(row) && row.length === players.length,
 				)
 			) {
-				setValues(parsed);
+				setValues(parsed as ScoreCellValue[][]);
 
 				setHistory([]);
 
@@ -859,11 +866,7 @@ export default function ScorecardPage() {
 				return;
 			}
 		} catch {
-			/*
-				Broken localStorage data.
-				Scorely simply falls back
-				to a fresh protocol.
-			*/
+			// ignore broken localStorage data
 		}
 
 		setValues(fallbackValues);
@@ -875,7 +878,7 @@ export default function ScorecardPage() {
 		hasLoadedInitialValuesRef.current = true;
 
 		hasUserMadeChangeRef.current = false;
-	}, [game, players.length, protocolEntry, storageKey]);
+	}, [game, gameId, players.length, protocolEntry, storageKey]);
 
 	/* =====================================================
 	   AUTOSAVE
