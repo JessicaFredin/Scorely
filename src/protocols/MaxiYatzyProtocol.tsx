@@ -28,7 +28,6 @@ type MaxiRow = {
 	label: string;
 	type: MaxiRowType;
 	rowIndex: number;
-
 	faceValue?: number;
 	fixedScore?: number;
 	helper?: string;
@@ -111,10 +110,6 @@ type ModalState =
 	| NumberModal
 	| null;
 
-/*
-	Tactic Maxi Yatzy:
-	75+ i övre delen = 50 bonus.
-*/
 const BONUS_THRESHOLD = 75;
 const BONUS_SCORE = 50;
 
@@ -338,32 +333,15 @@ function syncBonusRow(next: ScoreCellValue[][], playerCount: number) {
 	return next;
 }
 
-function getMobileFirstColWidth(playerCount: number) {
-	if (playerCount >= 5) {
-		return "74px";
-	}
-
-	if (playerCount === 4) {
-		return "82px";
-	}
-
-	return "96px";
+function getFirstColWidth() {
+	return "150px";
 }
 
-function getMobilePlayerMinWidth(playerCount: number) {
-	if (playerCount >= 5) {
-		return "52px";
-	}
-
-	if (playerCount === 4) {
-		return "62px";
-	}
-
-	if (playerCount === 3) {
-		return "72px";
-	}
-
-	return "92px";
+function getPlayerMinWidth(playerCount: number) {
+	if (playerCount >= 5) return "76px";
+	if (playerCount === 4) return "84px";
+	if (playerCount === 3) return "92px";
+	return "110px";
 }
 
 function getModalTitle(row: MaxiRow) {
@@ -465,20 +443,14 @@ function formatCell(
 
 		const remaining = getRemainingToBonus(values, playerIndex);
 
-		if (bonus > 0) {
-			return {
-				main: String(BONUS_SCORE),
-				sub: "Bonus klar",
-				mainClass: "text-emerald-500",
-				subClass: "text-emerald-500",
-			};
-		}
-
 		return {
-			main: "0",
-			sub: `${remaining} kvar`,
-			mainClass: "text-slate-700",
-			subClass: "text-amber-500",
+			main: String(bonus),
+
+			sub: bonus > 0 ? "Bonus klar" : `${remaining} kvar`,
+
+			mainClass: bonus > 0 ? "text-emerald-500" : "text-slate-700",
+
+			subClass: bonus > 0 ? "text-emerald-500" : "text-amber-500",
 		};
 	}
 
@@ -496,6 +468,7 @@ function formatCell(
 	return {
 		main: String(value),
 		sub: "",
+
 		mainClass: value > 0 ? "text-emerald-500" : "text-slate-500",
 
 		subClass: "text-slate-300",
@@ -512,9 +485,7 @@ export default function MaxiYatzyProtocol({
 	const [modal, setModal] = useState<ModalState>(null);
 
 	useEffect(() => {
-		if (!modal) {
-			return;
-		}
+		if (!modal) return;
 
 		const oldBody = document.body.style.overflow;
 
@@ -572,12 +543,9 @@ export default function MaxiYatzyProtocol({
 					kind: "face",
 					row,
 					playerIndex,
-
 					selectedFace: currentValue > 0 ? currentValue / 2 : 0,
-
 					factor: 2,
 				});
-
 				return;
 
 			case "twoPair":
@@ -589,7 +557,6 @@ export default function MaxiYatzyProtocol({
 					requiredFaces: 2,
 					factor: 2,
 				});
-
 				return;
 
 			case "threePair":
@@ -601,7 +568,6 @@ export default function MaxiYatzyProtocol({
 					requiredFaces: 3,
 					factor: 2,
 				});
-
 				return;
 
 			case "kind3":
@@ -609,12 +575,9 @@ export default function MaxiYatzyProtocol({
 					kind: "face",
 					row,
 					playerIndex,
-
 					selectedFace: currentValue > 0 ? currentValue / 3 : 0,
-
 					factor: 3,
 				});
-
 				return;
 
 			case "kind4":
@@ -622,12 +585,9 @@ export default function MaxiYatzyProtocol({
 					kind: "face",
 					row,
 					playerIndex,
-
 					selectedFace: currentValue > 0 ? currentValue / 4 : 0,
-
 					factor: 4,
 				});
-
 				return;
 
 			case "kind5":
@@ -635,12 +595,9 @@ export default function MaxiYatzyProtocol({
 					kind: "face",
 					row,
 					playerIndex,
-
 					selectedFace: currentValue > 0 ? currentValue / 5 : 0,
-
 					factor: 5,
 				});
-
 				return;
 
 			case "straight":
@@ -648,12 +605,9 @@ export default function MaxiYatzyProtocol({
 					kind: "fixed",
 					row,
 					playerIndex,
-
 					active: currentValue === (row.fixedScore ?? 0),
-
 					score: row.fixedScore ?? 0,
 				});
-
 				return;
 
 			case "maxiYatzy":
@@ -661,25 +615,19 @@ export default function MaxiYatzyProtocol({
 					kind: "fixed",
 					row,
 					playerIndex,
-
 					active: currentValue === 100,
-
 					score: 100,
 				});
-
 				return;
 
 			case "fullHouse":
 				setModal({
 					kind: "fullHouse",
-
 					row,
 					playerIndex,
-
 					tripleFace: 0,
 					pairFace: 0,
 				});
-
 				return;
 
 			case "house":
@@ -687,11 +635,9 @@ export default function MaxiYatzyProtocol({
 					kind: "house",
 					row,
 					playerIndex,
-
 					firstTriple: 0,
 					secondTriple: 0,
 				});
-
 				return;
 
 			case "tower":
@@ -699,11 +645,9 @@ export default function MaxiYatzyProtocol({
 					kind: "tower",
 					row,
 					playerIndex,
-
 					fourFace: 0,
 					pairFace: 0,
 				});
-
 				return;
 
 			case "chance":
@@ -711,13 +655,10 @@ export default function MaxiYatzyProtocol({
 					kind: "number",
 					row,
 					playerIndex,
-
 					value: currentValue,
-
 					min: 0,
 					max: 36,
 				});
-
 				return;
 		}
 	};
@@ -751,22 +692,22 @@ export default function MaxiYatzyProtocol({
 		onSelect: (face: number) => void,
 		factor: number,
 	) => (
-		<div className="grid grid-cols-4 gap-2 sm:grid-cols-7 sm:gap-3">
+		<div className="grid grid-cols-7 gap-2">
 			{[0, 1, 2, 3, 4, 5, 6].map((face) => (
 				<button
 					key={face}
 					type="button"
 					onClick={() => onSelect(face)}
-					className={`rounded-[14px] border px-2 py-3 text-center transition sm:rounded-[16px] sm:px-3 ${
+					className={`rounded-[14px] border px-2 py-3 text-center transition ${
 						selectedFace === face
 							? "border-emerald-400 bg-emerald-50 text-slate-900"
 							: "border-[#d8e3dc] bg-white text-slate-700 hover:bg-slate-50"
 					}`}
 				>
-					<div className="font-black">{face === 0 ? "0" : face}</div>
+					<div className="font-black">{face}</div>
 
 					{face > 0 && (
-						<div className="mt-0.5 text-[10px] text-slate-400 sm:text-xs">
+						<div className="mt-0.5 text-[10px] text-slate-400">
 							{face * factor} p
 						</div>
 					)}
@@ -775,98 +716,173 @@ export default function MaxiYatzyProtocol({
 		</div>
 	);
 
-	const firstColWidth = getMobileFirstColWidth(players.length);
+	const firstColWidth = getFirstColWidth();
 
-	const playerMinWidth = getMobilePlayerMinWidth(players.length);
+	const playerMinWidth = getPlayerMinWidth(players.length);
+
+	const gridTemplateColumns = `${firstColWidth} repeat(${players.length}, minmax(${playerMinWidth}, 1fr))`;
 
 	return (
 		<>
-			<div className="mx-auto w-full max-w-[1000px]">
-				<div className="overflow-hidden rounded-[22px] border border-white/70 bg-white/55 shadow-[0_8px_24px_rgba(0,0,0,0.03)] sm:rounded-[28px]">
+			<div className="mx-auto w-full max-w-[1000px] overflow-x-auto pb-2">
+				<div className="min-w-max overflow-hidden rounded-[24px] border border-white/70 bg-white/55 shadow-[0_8px_24px_rgba(0,0,0,0.03)] sm:rounded-[28px]">
 					{/* HEADER */}
-
 					<div
 						className="grid bg-[#e7f1eb]"
 						style={{
-							gridTemplateColumns: `${firstColWidth} repeat(${players.length}, minmax(${playerMinWidth}, 1fr))`,
+							gridTemplateColumns,
 						}}
 					>
-						<div className="flex items-center border-b border-r border-[#d8e3dc] px-2 py-3 text-[9px] font-black uppercase tracking-[0.06em] text-slate-700 sm:px-4 sm:py-4 sm:text-xs">
+						<div className="flex items-center border-b border-r border-[#d8e3dc] px-4 py-4 text-xs font-black uppercase tracking-[0.08em] text-slate-700">
 							Maxi
 						</div>
 
 						{players.map((player, playerIndex) => (
 							<div
 								key={`${player.name}-${playerIndex}`}
-								className="min-w-0 border-b border-[#d8e3dc] px-1 py-3 text-center sm:px-3 sm:py-4"
+								className="min-w-0 border-b border-[#d8e3dc] px-3 py-4 text-center"
 							>
-								<p className="truncate text-[9px] font-black text-slate-800 sm:text-sm">
+								<p className="truncate text-sm font-black text-slate-800">
 									{player.name}
 								</p>
 
-								<p className="mt-0.5 text-[8px] font-bold text-slate-400 sm:text-xs">
+								<p className="mt-0.5 text-xs font-bold text-slate-400">
 									{totals[playerIndex]} p
 								</p>
 							</div>
 						))}
 					</div>
 
-					{/* UPPER SUM */}
+					{/* UPPER ROWS */}
+					{maxiRows
+						.filter((row) => row.type === "upper")
+						.map((row, displayIndex) => {
+							const rowBg =
+								displayIndex % 2 === 0
+									? "bg-white/60"
+									: "bg-[#f7faf8]";
 
+							return (
+								<div
+									key={row.key}
+									className="grid"
+									style={{
+										gridTemplateColumns,
+									}}
+								>
+									<div
+										className={`min-w-0 border-r border-t border-[#d8e3dc] px-4 py-4 ${rowBg}`}
+									>
+										<p className="whitespace-nowrap text-sm font-black leading-tight text-slate-800">
+											{row.label}
+										</p>
+									</div>
+
+									{players.map((player, playerIndex) => {
+										const display = formatCell(
+											row,
+											values,
+											playerIndex,
+										);
+
+										return (
+											<button
+												key={`${row.key}-${player.name}-${playerIndex}`}
+												type="button"
+												onClick={() =>
+													openCell(row, playerIndex)
+												}
+												disabled={isLocked}
+												className={`flex min-h-[72px] min-w-0 flex-col items-center justify-center border-t border-[#d8e3dc] px-3 py-3 text-center transition ${rowBg} ${
+													!isLocked
+														? "hover:bg-emerald-50/60 active:bg-emerald-100/60"
+														: ""
+												}`}
+											>
+												<span
+													className={`text-base font-black ${display.mainClass}`}
+												>
+													{display.main}
+												</span>
+											</button>
+										);
+									})}
+								</div>
+							);
+						})}
+
+					{/* ÖVRE DELEN - DIRECTLY ABOVE BONUS */}
 					<div
-						className="grid bg-[#f1f7f3]"
+						className="grid bg-[#eef7f1]"
 						style={{
-							gridTemplateColumns: `${firstColWidth} repeat(${players.length}, minmax(${playerMinWidth}, 1fr))`,
+							gridTemplateColumns,
 						}}
 					>
-						<div className="border-r border-b border-[#d8e3dc] px-2 py-2 text-[8px] font-black uppercase text-slate-500 sm:px-4 sm:py-3 sm:text-xs">
-							Övre
+						<div className="border-r border-t border-[#cfe0d6] px-4 py-4">
+							<p className="whitespace-nowrap text-xs font-black uppercase tracking-[0.08em] text-slate-700">
+								Övre delen
+							</p>
+
+							<p className="mt-1 text-[10px] font-medium text-slate-400">
+								Summa ettor–sexor
+							</p>
 						</div>
 
-						{players.map((player, playerIndex) => (
-							<div
-								key={`upper-${player.name}-${playerIndex}`}
-								className="border-b border-[#d8e3dc] px-1 py-2 text-center sm:px-3 sm:py-3"
-							>
-								<span className="text-[9px] font-black text-slate-700 sm:text-sm">
-									{upperSums[playerIndex]}
-								</span>
+						{players.map((player, playerIndex) => {
+							const remaining = getRemainingToBonus(
+								values,
+								playerIndex,
+							);
 
-								<span className="ml-0.5 text-[7px] font-bold text-slate-400 sm:text-xs">
-									/{BONUS_THRESHOLD}
-								</span>
-							</div>
-						))}
+							const hasBonus =
+								upperSums[playerIndex] >= BONUS_THRESHOLD;
+
+							return (
+								<div
+									key={`upper-summary-${player.name}-${playerIndex}`}
+									className="flex min-h-[72px] flex-col items-center justify-center border-t border-[#cfe0d6] px-3 py-3 text-center"
+								>
+									<div>
+										<span className="text-base font-black text-slate-800">
+											{upperSums[playerIndex]}
+										</span>
+
+										<span className="ml-1 text-xs font-bold text-slate-400">
+											/{BONUS_THRESHOLD}
+										</span>
+									</div>
+
+									<p
+										className={`mt-1 text-[10px] font-bold ${
+											hasBonus
+												? "text-emerald-500"
+												: "text-amber-500"
+										}`}
+									>
+										{hasBonus
+											? "Bonus klar"
+											: `${remaining} kvar`}
+									</p>
+								</div>
+							);
+						})}
 					</div>
 
-					{/* SCORE ROWS */}
-
-					{maxiRows.map((row, displayIndex) => {
-						const rowBg =
-							displayIndex % 2 === 0
-								? "bg-white/60"
-								: "bg-[#f7faf8]";
-
-						return (
+					{/* BONUS */}
+					{maxiRows
+						.filter((row) => row.type === "bonus")
+						.map((row) => (
 							<div
 								key={row.key}
-								className="grid"
+								className="grid bg-white/60"
 								style={{
-									gridTemplateColumns: `${firstColWidth} repeat(${players.length}, minmax(${playerMinWidth}, 1fr))`,
+									gridTemplateColumns,
 								}}
 							>
-								<div
-									className={`min-w-0 border-r border-t border-[#d8e3dc] px-2 py-3 ${rowBg} sm:px-4 sm:py-4`}
-								>
-									<p className="break-words text-[8px] font-black leading-tight text-slate-800 sm:text-sm">
-										{row.label}
+								<div className="border-r border-t border-[#d8e3dc] px-4 py-4">
+									<p className="whitespace-nowrap text-sm font-black text-slate-800">
+										Bonus
 									</p>
-
-									{row.helper && (
-										<p className="mt-0.5 hidden text-[10px] leading-tight text-slate-400 sm:block">
-											{row.helper}
-										</p>
-									)}
 								</div>
 
 								{players.map((player, playerIndex) => {
@@ -877,60 +893,113 @@ export default function MaxiYatzyProtocol({
 									);
 
 									return (
-										<button
-											key={`${row.key}-${player.name}-${playerIndex}`}
-											type="button"
-											onClick={() =>
-												openCell(row, playerIndex)
-											}
-											disabled={
-												isLocked || row.type === "bonus"
-											}
-											className={`flex min-h-[52px] min-w-0 flex-col items-center justify-center border-t border-[#d8e3dc] px-1 py-2 text-center transition sm:min-h-[72px] sm:px-3 sm:py-3 ${rowBg} ${
-												!isLocked &&
-												row.type !== "bonus"
-													? "hover:bg-emerald-50/60 active:bg-emerald-100/60"
-													: ""
-											}`}
+										<div
+											key={`bonus-${player.name}-${playerIndex}`}
+											className="flex min-h-[72px] flex-col items-center justify-center border-t border-[#d8e3dc] px-3 py-3 text-center"
 										>
 											<span
-												className={`text-[11px] font-black sm:text-base ${display.mainClass}`}
+												className={`text-base font-black ${display.mainClass}`}
 											>
 												{display.main}
 											</span>
 
 											{display.sub && (
 												<span
-													className={`mt-0.5 text-[7px] font-bold leading-tight sm:text-[10px] ${display.subClass}`}
+													className={`mt-1 text-[10px] font-bold ${display.subClass}`}
 												>
 													{display.sub}
 												</span>
 											)}
-										</button>
+										</div>
 									);
 								})}
 							</div>
-						);
-					})}
+						))}
+
+					{/* LOWER ROWS */}
+					{maxiRows
+						.filter(
+							(row) =>
+								row.type !== "upper" && row.type !== "bonus",
+						)
+						.map((row, displayIndex) => {
+							const rowBg =
+								displayIndex % 2 === 0
+									? "bg-[#f7faf8]"
+									: "bg-white/60";
+
+							return (
+								<div
+									key={row.key}
+									className="grid"
+									style={{
+										gridTemplateColumns,
+									}}
+								>
+									<div
+										className={`min-w-0 border-r border-t border-[#d8e3dc] px-4 py-4 ${rowBg}`}
+									>
+										<p className="whitespace-nowrap text-sm font-black leading-tight text-slate-800">
+											{row.label}
+										</p>
+
+										{row.helper && (
+											<p className="mt-1 whitespace-nowrap text-[10px] font-medium leading-tight text-slate-400">
+												{row.helper}
+											</p>
+										)}
+									</div>
+
+									{players.map((player, playerIndex) => {
+										const display = formatCell(
+											row,
+											values,
+											playerIndex,
+										);
+
+										return (
+											<button
+												key={`${row.key}-${player.name}-${playerIndex}`}
+												type="button"
+												onClick={() =>
+													openCell(row, playerIndex)
+												}
+												disabled={isLocked}
+												className={`flex min-h-[72px] min-w-0 flex-col items-center justify-center border-t border-[#d8e3dc] px-3 py-3 text-center transition ${rowBg} ${
+													!isLocked
+														? "hover:bg-emerald-50/60 active:bg-emerald-100/60"
+														: ""
+												}`}
+											>
+												<span
+													className={`text-base font-black ${display.mainClass}`}
+												>
+													{display.main}
+												</span>
+											</button>
+										);
+									})}
+								</div>
+							);
+						})}
 
 					{/* TOTAL */}
-
 					<div
 						className="grid bg-[#dff0e7]"
 						style={{
-							gridTemplateColumns: `${firstColWidth} repeat(${players.length}, minmax(${playerMinWidth}, 1fr))`,
+							gridTemplateColumns,
 						}}
 					>
-						<div className="border-r border-t border-[#cfe0d6] px-2 py-3 text-[9px] font-black uppercase text-slate-900 sm:px-4 sm:py-4 sm:text-sm">
+						<div className="border-r border-t border-[#cfe0d6] px-4 py-4 text-sm font-black uppercase text-slate-900">
 							Totalt
 						</div>
 
 						{players.map((player, playerIndex) => (
 							<div
 								key={`total-${player.name}-${playerIndex}`}
-								className="flex items-center justify-center border-t border-[#cfe0d6] px-1 py-3 sm:px-3 sm:py-4"
+								className="flex items-center justify-center border-t border-[#cfe0d6] px-3 py-4"
 							>
-								<span className="text-sm font-black text-slate-950 sm:text-xl">
+								<span className="text-xl font-black text-slate-950">
 									{totals[playerIndex]}
 								</span>
 							</div>
@@ -940,7 +1009,6 @@ export default function MaxiYatzyProtocol({
 			</div>
 
 			{/* MODAL */}
-
 			{modal &&
 				createPortal(
 					<div
@@ -948,41 +1016,38 @@ export default function MaxiYatzyProtocol({
 						onClick={closeModal}
 					>
 						<div
-							className="relative my-auto max-h-[92dvh] w-full max-w-[520px] overflow-y-auto rounded-[26px] bg-white p-5 shadow-2xl sm:rounded-[28px] sm:p-6"
+							className="relative my-auto max-h-[92dvh] w-full max-w-[520px] overflow-y-auto rounded-[28px] bg-white p-5 shadow-2xl sm:p-6"
 							onClick={(event) => event.stopPropagation()}
 						>
 							<button
 								type="button"
 								onClick={closeModal}
-								className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-500 transition hover:bg-slate-200 sm:right-4 sm:top-4"
+								className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-500 transition hover:bg-slate-200"
 								aria-label="Stäng"
 							>
 								<X size={18} />
 							</button>
 
 							<div className="pr-10">
-								<p className="text-[10px] font-black uppercase tracking-[0.12em] text-emerald-600 sm:text-xs">
+								<p className="text-xs font-black uppercase tracking-[0.12em] text-emerald-600">
 									{players[modal.playerIndex]?.name}
 								</p>
 
-								<h2 className="mt-1 text-lg font-black text-slate-950 sm:text-2xl">
+								<h2 className="mt-1 text-xl font-black text-slate-950 sm:text-2xl">
 									{getModalTitle(modal.row)}
 								</h2>
 
-								<p className="mt-1.5 text-xs leading-5 text-slate-500 sm:text-sm">
+								<p className="mt-2 text-sm leading-6 text-slate-500">
 									{getModalSubtitle(modal.row)}
 								</p>
 							</div>
 
 							{/* COUNT */}
-
 							{modal.kind === "count" && (
 								<>
-									<div className="mt-6 grid grid-cols-4 gap-2 sm:mt-8 sm:grid-cols-7 sm:gap-3">
+									<div className="mt-7 grid grid-cols-7 gap-2">
 										{Array.from(
-											{
-												length: 7,
-											},
+											{ length: 7 },
 											(_, count) => (
 												<button
 													key={count}
@@ -993,7 +1058,7 @@ export default function MaxiYatzyProtocol({
 															count,
 														})
 													}
-													className={`rounded-[14px] border px-2 py-3 text-center transition sm:rounded-[16px] ${
+													className={`rounded-[14px] border px-2 py-3 text-center transition ${
 														modal.count === count
 															? "border-emerald-400 bg-emerald-50"
 															: "border-[#d8e3dc] bg-white hover:bg-slate-50"
@@ -1003,7 +1068,7 @@ export default function MaxiYatzyProtocol({
 														{count}
 													</div>
 
-													<div className="mt-0.5 text-[10px] text-slate-400 sm:text-xs">
+													<div className="mt-0.5 text-[10px] text-slate-400">
 														{count *
 															modal.multiplier}{" "}
 														p
@@ -1024,7 +1089,7 @@ export default function MaxiYatzyProtocol({
 
 											closeModal();
 										}}
-										className="mt-6 w-full rounded-full bg-emerald-500 px-5 py-3.5 text-sm font-black text-white transition hover:bg-emerald-600 sm:mt-8 sm:py-4 sm:text-base"
+										className="mt-7 w-full rounded-full bg-emerald-500 px-5 py-4 text-sm font-black text-white transition hover:bg-emerald-600 sm:text-base"
 									>
 										Bekräfta resultat
 									</button>
@@ -1032,19 +1097,16 @@ export default function MaxiYatzyProtocol({
 							)}
 
 							{/* FACE */}
-
 							{modal.kind === "face" && (
 								<>
-									<div className="mt-6 sm:mt-8">
+									<div className="mt-7">
 										{renderFaceButtons(
 											modal.selectedFace,
-
 											(face) =>
 												setModal({
 													...modal,
 													selectedFace: face,
 												}),
-
 											modal.factor,
 										)}
 									</div>
@@ -1061,18 +1123,17 @@ export default function MaxiYatzyProtocol({
 
 											closeModal();
 										}}
-										className="mt-6 w-full rounded-full bg-emerald-500 px-5 py-3.5 text-sm font-black text-white transition hover:bg-emerald-600 sm:mt-8 sm:py-4 sm:text-base"
+										className="mt-7 w-full rounded-full bg-emerald-500 px-5 py-4 text-sm font-black text-white transition hover:bg-emerald-600 sm:text-base"
 									>
 										Bekräfta resultat
 									</button>
 								</>
 							)}
 
-							{/* MULTIPLE PAIRS */}
-
+							{/* MULTI FACES */}
 							{modal.kind === "multiFaces" && (
 								<>
-									<div className="mt-6 grid grid-cols-3 gap-2 sm:mt-8 sm:grid-cols-6 sm:gap-3">
+									<div className="mt-7 grid grid-cols-6 gap-2">
 										{[1, 2, 3, 4, 5, 6].map((face) => {
 											const selected =
 												modal.selectedFaces.includes(
@@ -1164,7 +1225,7 @@ export default function MaxiYatzyProtocol({
 
 											closeModal();
 										}}
-										className="mt-5 w-full rounded-full bg-emerald-500 px-5 py-3.5 text-sm font-black text-white transition hover:bg-emerald-600 sm:py-4 sm:text-base"
+										className="mt-5 w-full rounded-full bg-emerald-500 px-5 py-4 text-sm font-black text-white transition hover:bg-emerald-600 sm:text-base"
 									>
 										Bekräfta resultat
 									</button>
@@ -1172,10 +1233,9 @@ export default function MaxiYatzyProtocol({
 							)}
 
 							{/* FIXED */}
-
 							{modal.kind === "fixed" && (
 								<>
-									<div className="mt-6 grid grid-cols-2 gap-3 sm:mt-8">
+									<div className="mt-7 grid grid-cols-2 gap-3">
 										<button
 											type="button"
 											onClick={() =>
@@ -1222,7 +1282,7 @@ export default function MaxiYatzyProtocol({
 
 											closeModal();
 										}}
-										className="mt-6 w-full rounded-full bg-emerald-500 px-5 py-3.5 text-sm font-black text-white transition hover:bg-emerald-600 sm:mt-8 sm:py-4 sm:text-base"
+										className="mt-7 w-full rounded-full bg-emerald-500 px-5 py-4 text-sm font-black text-white transition hover:bg-emerald-600 sm:text-base"
 									>
 										Bekräfta resultat
 									</button>
@@ -1230,42 +1290,57 @@ export default function MaxiYatzyProtocol({
 							)}
 
 							{/* FULL HOUSE */}
-
 							{modal.kind === "fullHouse" && (
 								<>
-									<div className="mt-6 grid gap-5 sm:mt-8 sm:grid-cols-2">
+									<div className="mt-7 space-y-6">
 										<div>
-											<p className="mb-2 text-center text-xs font-black uppercase text-slate-500">
-												Tretal
-											</p>
+											<div className="mb-3 flex items-center justify-between">
+												<p className="text-xs font-black uppercase tracking-[0.08em] text-slate-500">
+													Tretal
+												</p>
+
+												{modal.tripleFace > 0 && (
+													<p className="text-xs font-bold text-emerald-600">
+														{modal.tripleFace * 3}{" "}
+														poäng
+													</p>
+												)}
+											</div>
 
 											{renderFaceButtons(
 												modal.tripleFace,
-
 												(face) =>
 													setModal({
 														...modal,
 														tripleFace: face,
-
 														pairFace:
 															modal.pairFace ===
 															face
 																? 0
 																: modal.pairFace,
 													}),
-
 												3,
 											)}
 										</div>
 
+										<div className="h-px bg-slate-100" />
+
 										<div>
-											<p className="mb-2 text-center text-xs font-black uppercase text-slate-500">
-												Par
-											</p>
+											<div className="mb-3 flex items-center justify-between">
+												<p className="text-xs font-black uppercase tracking-[0.08em] text-slate-500">
+													Par
+												</p>
+
+												{modal.pairFace > 0 && (
+													<p className="text-xs font-bold text-emerald-600">
+														{modal.pairFace * 2}{" "}
+														poäng
+													</p>
+												)}
+											</div>
 
 											{renderFaceButtons(
 												modal.pairFace,
-
 												(face) => {
 													if (
 														face !== 0 &&
@@ -1280,20 +1355,25 @@ export default function MaxiYatzyProtocol({
 														pairFace: face,
 													});
 												},
-
 												2,
 											)}
 										</div>
 									</div>
 
-									<div className="mt-5 rounded-[16px] bg-slate-50 px-4 py-3 text-center text-sm font-bold text-slate-700">
-										Poäng:{" "}
-										{modal.tripleFace > 0 &&
-										modal.pairFace > 0 &&
-										modal.tripleFace !== modal.pairFace
-											? modal.tripleFace * 3 +
-												modal.pairFace * 2
-											: 0}
+									<div className="mt-6 rounded-[18px] bg-emerald-50 px-4 py-4 text-center">
+										<p className="text-xs font-bold text-emerald-700">
+											Totalt
+										</p>
+
+										<p className="mt-1 text-xl font-black text-emerald-800">
+											{modal.tripleFace > 0 &&
+											modal.pairFace > 0 &&
+											modal.tripleFace !== modal.pairFace
+												? modal.tripleFace * 3 +
+													modal.pairFace * 2
+												: 0}{" "}
+											poäng
+										</p>
 									</div>
 
 									<button
@@ -1316,7 +1396,7 @@ export default function MaxiYatzyProtocol({
 
 											closeModal();
 										}}
-										className="mt-5 w-full rounded-full bg-emerald-500 px-5 py-3.5 text-sm font-black text-white transition hover:bg-emerald-600 sm:py-4 sm:text-base"
+										className="mt-5 w-full rounded-full bg-emerald-500 px-5 py-4 text-sm font-black text-white transition hover:bg-emerald-600 sm:text-base"
 									>
 										Bekräfta resultat
 									</button>
@@ -1324,42 +1404,39 @@ export default function MaxiYatzyProtocol({
 							)}
 
 							{/* HOUSE */}
-
 							{modal.kind === "house" && (
 								<>
-									<div className="mt-6 grid gap-5 sm:mt-8 sm:grid-cols-2">
+									<div className="mt-7 space-y-6">
 										<div>
-											<p className="mb-2 text-center text-xs font-black uppercase text-slate-500">
+											<p className="mb-3 text-xs font-black uppercase tracking-[0.08em] text-slate-500">
 												Första tretalet
 											</p>
 
 											{renderFaceButtons(
 												modal.firstTriple,
-
 												(face) =>
 													setModal({
 														...modal,
 														firstTriple: face,
-
 														secondTriple:
 															modal.secondTriple ===
 															face
 																? 0
 																: modal.secondTriple,
 													}),
-
 												3,
 											)}
 										</div>
 
+										<div className="h-px bg-slate-100" />
+
 										<div>
-											<p className="mb-2 text-center text-xs font-black uppercase text-slate-500">
+											<p className="mb-3 text-xs font-black uppercase tracking-[0.08em] text-slate-500">
 												Andra tretalet
 											</p>
 
 											{renderFaceButtons(
 												modal.secondTriple,
-
 												(face) => {
 													if (
 														face !== 0 &&
@@ -1374,20 +1451,26 @@ export default function MaxiYatzyProtocol({
 														secondTriple: face,
 													});
 												},
-
 												3,
 											)}
 										</div>
 									</div>
 
-									<div className="mt-5 rounded-[16px] bg-slate-50 px-4 py-3 text-center text-sm font-bold text-slate-700">
-										Poäng:{" "}
-										{modal.firstTriple > 0 &&
-										modal.secondTriple > 0 &&
-										modal.firstTriple !== modal.secondTriple
-											? modal.firstTriple * 3 +
-												modal.secondTriple * 3
-											: 0}
+									<div className="mt-6 rounded-[18px] bg-emerald-50 px-4 py-4 text-center">
+										<p className="text-xs font-bold text-emerald-700">
+											Totalt
+										</p>
+
+										<p className="mt-1 text-xl font-black text-emerald-800">
+											{modal.firstTriple > 0 &&
+											modal.secondTriple > 0 &&
+											modal.firstTriple !==
+												modal.secondTriple
+												? modal.firstTriple * 3 +
+													modal.secondTriple * 3
+												: 0}{" "}
+											poäng
+										</p>
 									</div>
 
 									<button
@@ -1410,7 +1493,7 @@ export default function MaxiYatzyProtocol({
 
 											closeModal();
 										}}
-										className="mt-5 w-full rounded-full bg-emerald-500 px-5 py-3.5 text-sm font-black text-white transition hover:bg-emerald-600 sm:py-4 sm:text-base"
+										className="mt-5 w-full rounded-full bg-emerald-500 px-5 py-4 text-sm font-black text-white transition hover:bg-emerald-600 sm:text-base"
 									>
 										Bekräfta resultat
 									</button>
@@ -1418,42 +1501,39 @@ export default function MaxiYatzyProtocol({
 							)}
 
 							{/* TOWER */}
-
 							{modal.kind === "tower" && (
 								<>
-									<div className="mt-6 grid gap-5 sm:mt-8 sm:grid-cols-2">
+									<div className="mt-7 space-y-6">
 										<div>
-											<p className="mb-2 text-center text-xs font-black uppercase text-slate-500">
+											<p className="mb-3 text-xs font-black uppercase tracking-[0.08em] text-slate-500">
 												Fyrtal
 											</p>
 
 											{renderFaceButtons(
 												modal.fourFace,
-
 												(face) =>
 													setModal({
 														...modal,
 														fourFace: face,
-
 														pairFace:
 															modal.pairFace ===
 															face
 																? 0
 																: modal.pairFace,
 													}),
-
 												4,
 											)}
 										</div>
 
+										<div className="h-px bg-slate-100" />
+
 										<div>
-											<p className="mb-2 text-center text-xs font-black uppercase text-slate-500">
+											<p className="mb-3 text-xs font-black uppercase tracking-[0.08em] text-slate-500">
 												Par
 											</p>
 
 											{renderFaceButtons(
 												modal.pairFace,
-
 												(face) => {
 													if (
 														face !== 0 &&
@@ -1467,20 +1547,25 @@ export default function MaxiYatzyProtocol({
 														pairFace: face,
 													});
 												},
-
 												2,
 											)}
 										</div>
 									</div>
 
-									<div className="mt-5 rounded-[16px] bg-slate-50 px-4 py-3 text-center text-sm font-bold text-slate-700">
-										Poäng:{" "}
-										{modal.fourFace > 0 &&
-										modal.pairFace > 0 &&
-										modal.fourFace !== modal.pairFace
-											? modal.fourFace * 4 +
-												modal.pairFace * 2
-											: 0}
+									<div className="mt-6 rounded-[18px] bg-emerald-50 px-4 py-4 text-center">
+										<p className="text-xs font-bold text-emerald-700">
+											Totalt
+										</p>
+
+										<p className="mt-1 text-xl font-black text-emerald-800">
+											{modal.fourFace > 0 &&
+											modal.pairFace > 0 &&
+											modal.fourFace !== modal.pairFace
+												? modal.fourFace * 4 +
+													modal.pairFace * 2
+												: 0}{" "}
+											poäng
+										</p>
 									</div>
 
 									<button
@@ -1503,37 +1588,35 @@ export default function MaxiYatzyProtocol({
 
 											closeModal();
 										}}
-										className="mt-5 w-full rounded-full bg-emerald-500 px-5 py-3.5 text-sm font-black text-white transition hover:bg-emerald-600 sm:py-4 sm:text-base"
+										className="mt-5 w-full rounded-full bg-emerald-500 px-5 py-4 text-sm font-black text-white transition hover:bg-emerald-600 sm:text-base"
 									>
 										Bekräfta resultat
 									</button>
 								</>
 							)}
 
-							{/* NUMBER / CHANCE */}
-
+							{/* NUMBER */}
 							{modal.kind === "number" && (
 								<>
-									<div className="mt-7 flex items-center justify-center gap-4 sm:mt-8">
+									<div className="mt-8 flex items-center justify-center gap-4">
 										<button
 											type="button"
 											onClick={() =>
 												setModal({
 													...modal,
-
 													value: Math.max(
 														modal.min,
 														modal.value - 1,
 													),
 												})
 											}
-											className="flex h-11 w-11 items-center justify-center rounded-full bg-slate-100 text-slate-700 transition hover:bg-slate-200 sm:h-12 sm:w-12"
+											className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-700 transition hover:bg-slate-200"
 										>
 											<Minus size={20} />
 										</button>
 
 										<div className="min-w-[110px] text-center">
-											<p className="text-3xl font-black text-slate-950 sm:text-4xl">
+											<p className="text-4xl font-black text-slate-950">
 												{modal.value}
 											</p>
 
@@ -1547,14 +1630,13 @@ export default function MaxiYatzyProtocol({
 											onClick={() =>
 												setModal({
 													...modal,
-
 													value: Math.min(
 														modal.max,
 														modal.value + 1,
 													),
 												})
 											}
-											className="flex h-11 w-11 items-center justify-center rounded-full bg-slate-100 text-slate-700 transition hover:bg-slate-200 sm:h-12 sm:w-12"
+											className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-700 transition hover:bg-slate-200"
 										>
 											<Plus size={20} />
 										</button>
@@ -1587,7 +1669,7 @@ export default function MaxiYatzyProtocol({
 
 											closeModal();
 										}}
-										className="mt-7 w-full rounded-full bg-emerald-500 px-5 py-3.5 text-sm font-black text-white transition hover:bg-emerald-600 sm:py-4 sm:text-base"
+										className="mt-7 w-full rounded-full bg-emerald-500 px-5 py-4 text-sm font-black text-white transition hover:bg-emerald-600 sm:text-base"
 									>
 										Bekräfta resultat
 									</button>
