@@ -219,7 +219,7 @@ function resolveEditableValue(value: CustomMatchScoreValue) {
 
 	return Math.abs(value);
 }
-
+const EMPTY_PLAYERS: CustomGameSession["players"] = [];
 export default function PlayCustomProtocol() {
 	const { matchId = "" } = useParams();
 
@@ -238,13 +238,17 @@ export default function PlayCustomProtocol() {
 		() => initialSession?.values ?? [],
 	);
 
-    useEffect(() => {
-		if (!session || session.finished) {
-			return;
-		}
+const sessionId = session?.id;
 
-		CustomGameService.setActiveGame(session.id);
-    }, [session?.id, session?.finished]);
+const sessionFinished = session?.finished ?? false;
+
+useEffect(() => {
+	if (!sessionId || sessionFinished) {
+		return;
+	}
+
+	CustomGameService.setActiveGame(sessionId);
+}, [sessionId, sessionFinished]);
     
 	const [history, setHistory] = useState<CustomMatchScoreValue[][][]>([]);
 
@@ -256,9 +260,9 @@ export default function PlayCustomProtocol() {
 
 	const toastId = useRef(0);
 
-	const protocol = session?.protocol;
+    const protocol = session?.protocol;
 
-	const players = session?.players ?? [];
+	const players = session?.players ?? EMPTY_PLAYERS;
 
 	const totals = useMemo(
 		() => (protocol ? getTotals(protocol, values, players.length) : []),
@@ -299,36 +303,50 @@ export default function PlayCustomProtocol() {
 
 		const winner = automaticWinner;
 
+		const nextFinished = session.finished || Boolean(winner);
+
+		const nextWinnerName = session.winnerName ?? winner?.name ?? null;
+
 		const next: CustomGameSession = {
 			...session,
 
 			values: cloneValues(values),
 
-			finished: session.finished || Boolean(winner),
+			finished: nextFinished,
 
-			winnerName: session.winnerName ?? winner?.name ?? null,
+			winnerName: nextWinnerName,
 
 			updatedAt: new Date().toISOString(),
 		};
 
+		/*
+		Autosave hela matchen till localStorage.
+	*/
 		CustomGameService.save(next);
 
-		setSession((prev) =>
-			prev
-				? {
-						...prev,
+		/*
+		Uppdatera React-sessionen endast när
+		själva matchstatusen faktiskt har ändrats.
 
-						finished: next.finished,
+		Detta förhindrar en render-loop.
+	*/
+		if (
+			nextFinished !== session.finished ||
+			nextWinnerName !== session.winnerName
+		) {
+			setSession((prev) =>
+				prev
+					? {
+							...prev,
 
-						winnerName: next.winnerName,
+							finished: nextFinished,
 
-						values: next.values,
-
-						updatedAt: next.updatedAt,
-					}
-				: prev,
-		);
-	}, [values, automaticWinner]);
+							winnerName: nextWinnerName,
+						}
+					: prev,
+			);
+		}
+	}, [values, automaticWinner, protocol, session]);
 
 	if (!session || !protocol) {
 		return (

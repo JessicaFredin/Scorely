@@ -940,7 +940,7 @@ export default function CreateCustomProtocol() {
 
 							{layout === "categories" && (
 								<div className="mt-6 overflow-hidden rounded-[20px] border border-slate-200 bg-white">
-									{rows.map((row, index) => (
+									{rows.map((row) => (
 										<div
 											key={row.id}
 											className="flex items-center justify-between gap-4 border-b border-slate-100 px-4 py-3 last:border-b-0"
