@@ -108,28 +108,6 @@ function getPlayerTotalBeforeRow(
 	return runningTotal;
 }
 
-function getPlayerTotalAfterRow(
-	values: ScoreCellValue[][],
-	playerIndex: number,
-	rowIndex: number,
-) {
-	let runningTotal = 0;
-
-	for (
-		let currentRowIndex = 0;
-		currentRowIndex <= rowIndex;
-		currentRowIndex++
-	) {
-		const rawValue = values[currentRowIndex]?.[playerIndex] ?? "";
-
-		const committed = getCommittedRoundScore(runningTotal, rawValue);
-
-		runningTotal += committed;
-	}
-
-	return runningTotal;
-}
-
 function hasWinner(values: ScoreCellValue[][], playerCount: number) {
 	return getPlayerTotals(values, playerCount).some(
 		(total) => total >= WIN_TARGET,
@@ -142,28 +120,6 @@ function getStatusLabel(total: number) {
 
 function getStatusClass(total: number) {
 	return total >= ENTRY_TARGET ? "text-emerald-600" : "text-amber-500";
-}
-
-function getCellDisplay(
-	values: ScoreCellValue[][],
-	rowIndex: number,
-	playerIndex: number,
-) {
-	const rawValue = values[rowIndex]?.[playerIndex] ?? "";
-
-	const totalBefore = getPlayerTotalBeforeRow(values, playerIndex, rowIndex);
-
-	const totalAfter = getPlayerTotalAfterRow(values, playerIndex, rowIndex);
-
-	return {
-		rawValue,
-		totalBefore,
-		totalAfter,
-
-		isOnBoardBeforeRow: totalBefore >= ENTRY_TARGET,
-
-		isOnBoardAfterRow: totalAfter >= ENTRY_TARGET,
-	};
 }
 
 function normalizeEntryValue(value: number, isOnBoard: boolean) {
@@ -208,7 +164,6 @@ export default function TenThousandProtocol({
 		const previousHtmlOverflow = document.documentElement.style.overflow;
 
 		document.body.style.overflow = "hidden";
-
 		document.documentElement.style.overflow = "hidden";
 
 		return () => {
@@ -228,6 +183,19 @@ export default function TenThousandProtocol({
 		[safeValues, players.length],
 	);
 
+	/*
+		MOBILE:
+		- whole protocol fills available width
+		- round column stays compact
+		- player columns share the remaining width equally
+
+		DESKTOP:
+		- same idea, but larger round column
+	*/
+	const mobileGridTemplateColumns = `76px repeat(${players.length}, minmax(0, 1fr))`;
+
+	const desktopGridTemplateColumns = `100px repeat(${players.length}, minmax(0, 1fr))`;
+
 	const openCell = (rowIndex: number, playerIndex: number) => {
 		if (isLocked) {
 			return;
@@ -246,7 +214,6 @@ export default function TenThousandProtocol({
 		setModal({
 			rowIndex,
 			playerIndex,
-
 			value:
 				typeof currentValue === "number"
 					? normalizeEntryValue(currentValue, isOnBoard)
@@ -263,16 +230,6 @@ export default function TenThousandProtocol({
 		playerIndex: number,
 		nextValue: number,
 	) => {
-		/*
-			ScorecardPage skickar in
-			onBatchChange.
-
-			Vi använder det här eftersom
-			vi både kan ändra cellen OCH
-			lägga till en ny rad i samma
-			uppdatering.
-		*/
-
 		if (onBatchChange) {
 			onBatchChange((prev) => {
 				const next = ensureMinimumRows(prev, players.length);
@@ -294,22 +251,6 @@ export default function TenThousandProtocol({
 
 				const winnerExists = hasWinner(next, players.length);
 
-				/*
-						VIKTIGT:
-
-						Varje spelare är
-						oberoende.
-
-						Så fort NÅGON spelare
-						fyller i sin ruta på
-						den sista raden skapas
-						en ny rad.
-
-						Vi väntar alltså INTE
-						på att de andra spelarna
-						ska fylla i sina rutor.
-					*/
-
 				if (rowIndex === lastRowIndex && !winnerExists) {
 					next.push(createEmptyRow(players.length));
 				}
@@ -319,11 +260,6 @@ export default function TenThousandProtocol({
 
 			return;
 		}
-
-		/*
-			Fallback om komponenten någon
-			gång används utan onBatchChange.
-		*/
 
 		const totalBefore = getPlayerTotalBeforeRow(
 			safeValues,
@@ -358,185 +294,369 @@ export default function TenThousandProtocol({
 				modal.value === 0 ||
 				modal.value >= ENTRY_TARGET;
 
-	return (
-		<>
-			<div className="overflow-x-auto">
-				<div className="min-w-[760px] overflow-hidden rounded-[28px] border border-[#dbe5df] bg-white/70 shadow-[0_8px_24px_rgba(0,0,0,0.03)]">
-					{/* HEADER */}
+	const renderHeader = (gridTemplateColumns: string, isDesktop: boolean) => (
+		<div
+			className="grid w-full bg-[#e7f1eb]"
+			style={{
+				gridTemplateColumns,
+			}}
+		>
+			<div
+				className={`
+					flex
+					items-center
+					justify-center
+					whitespace-nowrap
+					border-b
+					border-r
+					border-[#d8e3dc]
+					text-center
+					font-black
+					uppercase
+					text-slate-800
+					${
+						isDesktop
+							? "min-h-[62px] px-4 py-4 text-sm tracking-[0.05em]"
+							: "min-h-[52px] px-2 py-2 text-[10px] tracking-[0.02em]"
+					}
+				`}
+			>
+				{gameName}
+			</div>
 
-					<div
-						className="grid bg-[#e7f1eb]"
-						style={{
-							gridTemplateColumns: `90px repeat(${players.length}, minmax(0, 1fr))`,
-						}}
+			{players.map((player) => (
+				<div
+					key={player.name}
+					className={`
+						flex
+						min-w-0
+						items-center
+						justify-center
+						border-b
+						border-[#d8e3dc]
+						text-center
+						${isDesktop ? "min-h-[62px] px-4 py-4" : "min-h-[52px] px-1.5 py-2"}
+					`}
+				>
+					<span
+						className={`
+							whitespace-nowrap
+							font-black
+							text-slate-800
+							${isDesktop ? "text-base" : "text-[11px]"}
+						`}
 					>
-						<div className="border-b border-r border-[#d8e3dc] px-4 py-4 text-sm font-black uppercase tracking-[0.08em] text-slate-800">
-							{gameName}
-						</div>
+						{player.name}
+					</span>
+				</div>
+			))}
+		</div>
+	);
 
-						{players.map((player) => (
-							<div
-								key={player.name}
-								className="border-b border-[#d8e3dc] px-4 py-4 text-center text-sm font-black tracking-[0.08em] text-slate-800"
-							>
-								{player.name}
-							</div>
-						))}
+	const renderStatus = (gridTemplateColumns: string, isDesktop: boolean) => (
+		<div
+			className="grid w-full bg-[#eef7f1]"
+			style={{
+				gridTemplateColumns,
+			}}
+		>
+			<div
+				className={`
+					flex
+					items-center
+					justify-center
+					whitespace-nowrap
+					border-b
+					border-r
+					border-[#d8e3dc]
+					text-center
+					font-black
+					text-slate-900
+					${
+						isDesktop
+							? "min-h-[62px] px-4 py-4 text-base"
+							: "min-h-[48px] px-2 py-2 text-[11px]"
+					}
+				`}
+			>
+				Status
+			</div>
+
+			{players.map((player, playerIndex) => (
+				<div
+					key={`status-${player.name}`}
+					className={`
+							flex
+							min-w-0
+							items-center
+							justify-center
+							border-b
+							border-[#d8e3dc]
+							text-center
+							${isDesktop ? "min-h-[62px] px-4 py-4" : "min-h-[48px] px-1 py-2"}
+						`}
+				>
+					<span
+						className={`
+								whitespace-nowrap
+								font-black
+								${getStatusClass(totals[playerIndex])}
+								${isDesktop ? "text-base" : "text-[10px]"}
+							`}
+					>
+						{getStatusLabel(totals[playerIndex])}
+					</span>
+				</div>
+			))}
+		</div>
+	);
+
+	const renderRounds = (gridTemplateColumns: string, isDesktop: boolean) =>
+		safeValues.map((_, rowIndex) => {
+			const rowBg = rowIndex % 2 === 0 ? "bg-white/70" : "bg-[#f7faf8]";
+
+			return (
+				<div
+					key={`row-${rowIndex}`}
+					className="grid w-full"
+					style={{
+						gridTemplateColumns,
+					}}
+				>
+					<div
+						className={`
+							flex
+							items-center
+							justify-center
+							whitespace-nowrap
+							border-r
+							border-t
+							border-[#d8e3dc]
+							text-center
+							${rowBg}
+							${isDesktop ? "min-h-[110px] px-4 py-5" : "min-h-[58px] px-2 py-2"}
+						`}
+					>
+						<span
+							className={`
+								whitespace-nowrap
+								font-black
+								text-slate-900
+								${isDesktop ? "text-base" : "text-[11px]"}
+							`}
+						>
+							Runda {rowIndex + 1}
+						</span>
 					</div>
 
-					{/* STATUS */}
+					{players.map((player, playerIndex) => {
+						const rawValue = safeValues[rowIndex]?.[playerIndex];
 
-					<div
-						className="grid bg-[#eef7f1]"
-						style={{
-							gridTemplateColumns: `90px repeat(${players.length}, minmax(0, 1fr))`,
-						}}
-					>
-						<div className="border-r border-b border-[#d8e3dc] px-4 py-4 text-[1rem] font-black text-slate-900">
-							Status
-						</div>
-
-						{players.map((player, playerIndex) => (
-							<div
-								key={`status-${player.name}`}
-								className="border-b border-[#d8e3dc] px-4 py-4 text-center"
-							>
-								<span
-									className={`text-[1rem] font-black ${getStatusClass(
-										totals[playerIndex],
-									)}`}
-								>
-									{getStatusLabel(totals[playerIndex])}
-								</span>
-							</div>
-						))}
-					</div>
-
-					{/* ROUNDS */}
-
-					{safeValues.map((_, rowIndex) => {
-						const rowBg =
-							rowIndex % 2 === 0 ? "bg-white/60" : "bg-[#f7faf8]";
+						const shownValue =
+							typeof rawValue === "number" ? rawValue : 0;
 
 						return (
-							<div
-								key={`row-${rowIndex}`}
-								className="grid"
-								style={{
-									gridTemplateColumns: `90px repeat(${players.length}, minmax(0, 1fr))`,
-								}}
-							>
-								<div
-									className={`border-r border-t border-[#d8e3dc] px-4 py-5 text-center ${rowBg}`}
-								>
-									<div className="text-[1rem] font-black text-slate-900">
-										Runda {rowIndex + 1}
-									</div>
-								</div>
-
-								{players.map((player, playerIndex) => {
-									const display = getCellDisplay(
-										safeValues,
-										rowIndex,
-										playerIndex,
-									);
-
-									const shownValue =
-										typeof display.rawValue === "number"
-											? display.rawValue
-											: 0;
-
-									return (
-										<button
-											key={`cell-${rowIndex}-${player.name}`}
-											type="button"
-											onClick={() =>
-												openCell(rowIndex, playerIndex)
-											}
-											disabled={isLocked}
-											className={`flex min-h-[110px] flex-col items-center justify-center border-t border-[#d8e3dc] px-4 py-5 text-center transition ${rowBg} ${
-												isLocked
-													? "cursor-default"
-													: "hover:bg-emerald-50/40"
-											}`}
-										>
-											{/* ROUND SCORE */}
-
-											<span
-												className={`text-[1.1rem] font-black ${
-													shownValue >= ENTRY_TARGET
-														? "text-emerald-600"
-														: shownValue > 0
-															? "text-slate-700"
-															: "text-slate-400"
-												}`}
-											>
-												{shownValue}
-											</span>
-
-											{/* RUNNING TOTAL */}
-
-											<span className="mt-1 text-[1rem] font-bold text-slate-400">
-												{display.totalAfter}
-											</span>
-										</button>
-									);
-								})}
-							</div>
-						);
-					})}
-
-					{/* TOTAL */}
-
-					<div
-						className="grid bg-[#dff0e7]"
-						style={{
-							gridTemplateColumns: `90px repeat(${players.length}, minmax(0, 1fr))`,
-						}}
-					>
-						<div className="border-r border-t border-[#cfe0d6] px-4 py-4 text-[1.1rem] font-black text-slate-900">
-							Totalt
-						</div>
-
-						{players.map((player, playerIndex) => (
-							<div
-								key={`total-${player.name}`}
-								className="flex items-center justify-center border-t border-[#cfe0d6] px-4 py-4"
+							<button
+								key={`cell-${rowIndex}-${player.name}`}
+								type="button"
+								onClick={() => openCell(rowIndex, playerIndex)}
+								disabled={isLocked}
+								className={`
+										flex
+										min-w-0
+										items-center
+										justify-center
+										border-t
+										border-[#d8e3dc]
+										text-center
+										transition
+										${rowBg}
+										${isDesktop ? "min-h-[110px] px-4 py-5" : "min-h-[58px] px-1.5 py-2"}
+										${
+											isLocked
+												? "cursor-default"
+												: "cursor-pointer hover:bg-emerald-50/70 active:bg-emerald-100/60"
+										}
+									`}
 							>
 								<span
-									className={`text-[1.35rem] font-black ${
-										totals[playerIndex] >= WIN_TARGET
-											? "text-emerald-600"
-											: "text-slate-900"
-									}`}
+									className={`
+											whitespace-nowrap
+											font-black
+											tabular-nums
+											${
+												shownValue >= ENTRY_TARGET
+													? "text-emerald-600"
+													: shownValue > 0
+														? "text-slate-700"
+														: "text-slate-400"
+											}
+											${isDesktop ? "text-[1.1rem]" : "text-[12px]"}
+										`}
 								>
-									{totals[playerIndex]}
+									{shownValue}
 								</span>
-							</div>
-						))}
-					</div>
+							</button>
+						);
+					})}
+				</div>
+			);
+		});
+
+	const renderTotal = (gridTemplateColumns: string, isDesktop: boolean) => (
+		<div
+			className="grid w-full bg-[#dff0e7]"
+			style={{
+				gridTemplateColumns,
+			}}
+		>
+			<div
+				className={`
+					flex
+					items-center
+					justify-center
+					whitespace-nowrap
+					border-r
+					border-t
+					border-[#cfe0d6]
+					font-black
+					text-slate-900
+					${
+						isDesktop
+							? "min-h-[62px] px-4 py-4 text-[1.1rem]"
+							: "min-h-[50px] px-2 py-2 text-[11px]"
+					}
+				`}
+			>
+				Totalt
+			</div>
+
+			{players.map((player, playerIndex) => (
+				<div
+					key={`total-${player.name}`}
+					className={`
+							flex
+							min-w-0
+							items-center
+							justify-center
+							border-t
+							border-[#cfe0d6]
+							${isDesktop ? "min-h-[62px] px-4 py-4" : "min-h-[50px] px-1.5 py-2"}
+						`}
+				>
+					<span
+						className={`
+								whitespace-nowrap
+								font-black
+								tabular-nums
+								${totals[playerIndex] >= WIN_TARGET ? "text-emerald-600" : "text-slate-900"}
+								${isDesktop ? "text-[1.35rem]" : "text-[13px]"}
+							`}
+					>
+						{totals[playerIndex]}
+					</span>
+				</div>
+			))}
+		</div>
+	);
+
+	return (
+		<>
+			{/* =====================================================
+			    MOBILE
+			===================================================== */}
+
+			<div className="w-full sm:hidden">
+				<div
+					className="
+						w-full
+						overflow-hidden
+						rounded-[22px]
+						border
+						border-[#dbe5df]
+						bg-white/70
+						shadow-[0_8px_24px_rgba(0,0,0,0.03)]
+					"
+				>
+					{renderHeader(mobileGridTemplateColumns, false)}
+
+					{renderStatus(mobileGridTemplateColumns, false)}
+
+					{renderRounds(mobileGridTemplateColumns, false)}
+
+					{renderTotal(mobileGridTemplateColumns, false)}
 				</div>
 			</div>
 
-			{/* SCORE MODAL */}
+			{/* =====================================================
+			    DESKTOP
+			===================================================== */}
+
+			<div className="hidden w-full sm:block">
+				<div
+					className="
+						w-full
+						overflow-hidden
+						rounded-[28px]
+						border
+						border-[#dbe5df]
+						bg-white/70
+						shadow-[0_8px_24px_rgba(0,0,0,0.03)]
+					"
+				>
+					{renderHeader(desktopGridTemplateColumns, true)}
+
+					{renderStatus(desktopGridTemplateColumns, true)}
+
+					{renderRounds(desktopGridTemplateColumns, true)}
+
+					{renderTotal(desktopGridTemplateColumns, true)}
+				</div>
+			</div>
+
+			{/* =====================================================
+			    SCORE MODAL
+			===================================================== */}
 
 			{modal &&
 				createPortal(
 					<div
-						className="fixed inset-0 z-[9999] flex items-center justify-center overflow-y-auto bg-black/30 px-4 py-6 backdrop-blur-sm"
+						className="
+							fixed
+							inset-0
+							z-[9999]
+							flex
+							items-center
+							justify-center
+							overflow-y-auto
+							bg-black/30
+							px-4
+							py-6
+							backdrop-blur-sm
+						"
 						onClick={closeModal}
 					>
 						<div
-							className="relative my-auto w-full max-w-[520px] rounded-[28px] bg-white p-6 shadow-[0_24px_60px_rgba(0,0,0,0.18)] sm:p-8"
-							onClick={(e) => e.stopPropagation()}
+							className="
+								relative
+								my-auto
+								w-full
+								max-w-[520px]
+								rounded-[28px]
+								bg-white
+								p-6
+								shadow-[0_24px_60px_rgba(0,0,0,0.18)]
+								sm:p-8
+							"
+							onClick={(event) => event.stopPropagation()}
 						>
 							<div className="text-center">
-								<h2 className="text-[2rem] font-black text-slate-900">
+								<h2 className="pr-8 text-2xl font-black text-slate-900 sm:text-[2rem]">
 									Runda {modal.rowIndex + 1} –{" "}
 									{players[modal.playerIndex].name}
 								</h2>
 
-								<p className="mt-2 text-[1.05rem] text-slate-500">
+								<p className="mt-2 text-sm text-slate-500 sm:text-[1.05rem]">
 									Skriv poängen för rundan
 								</p>
 
@@ -547,8 +667,6 @@ export default function TenThousandProtocol({
 									</p>
 								)}
 							</div>
-
-							{/* +/- */}
 
 							<div className="mt-8 flex items-center justify-center gap-4">
 								<button
@@ -562,7 +680,6 @@ export default function TenThousandProtocol({
 											if (!modalPlayerIsOnBoard) {
 												return {
 													...prev,
-
 													value:
 														prev.value <=
 														ENTRY_TARGET
@@ -573,7 +690,6 @@ export default function TenThousandProtocol({
 
 											return {
 												...prev,
-
 												value: Math.max(
 													0,
 													prev.value - 50,
@@ -581,13 +697,25 @@ export default function TenThousandProtocol({
 											};
 										})
 									}
-									className="flex h-12 w-12 items-center justify-center rounded-full bg-[#dfe9e3] text-slate-900 transition hover:bg-[#d3dfd8]"
+									className="
+										flex
+										h-12
+										w-12
+										items-center
+										justify-center
+										rounded-full
+										bg-[#dfe9e3]
+										text-slate-900
+										transition
+										hover:bg-[#d3dfd8]
+										active:scale-95
+									"
 								>
 									<Minus size={22} />
 								</button>
 
 								<div className="min-w-[140px] text-center">
-									<div className="text-[2rem] font-black text-slate-900">
+									<div className="text-[2rem] font-black tabular-nums text-slate-900">
 										{modal.value}
 									</div>
 
@@ -607,7 +735,6 @@ export default function TenThousandProtocol({
 											if (!modalPlayerIsOnBoard) {
 												return {
 													...prev,
-
 													value:
 														prev.value === 0
 															? ENTRY_TARGET
@@ -617,20 +744,29 @@ export default function TenThousandProtocol({
 
 											return {
 												...prev,
-
 												value: prev.value + 50,
 											};
 										})
 									}
-									className="flex h-12 w-12 items-center justify-center rounded-full bg-[#dfe9e3] text-slate-900 transition hover:bg-[#d3dfd8]"
+									className="
+										flex
+										h-12
+										w-12
+										items-center
+										justify-center
+										rounded-full
+										bg-[#dfe9e3]
+										text-slate-900
+										transition
+										hover:bg-[#d3dfd8]
+										active:scale-95
+									"
 								>
 									<Plus size={22} />
 								</button>
 							</div>
 
-							{/* QUICK VALUES */}
-
-							<div className="mt-8 grid grid-cols-4 gap-3">
+							<div className="mt-8 grid grid-cols-4 gap-2 sm:gap-3">
 								{quickScores.map((score) => {
 									const disabled =
 										!modalPlayerIsOnBoard &&
@@ -647,29 +783,36 @@ export default function TenThousandProtocol({
 													prev
 														? {
 																...prev,
-
 																value: score,
 															}
 														: prev,
 												)
 											}
-											className={`rounded-[16px] border px-3 py-3 text-center font-bold transition ${
-												modal.value === score
-													? "border-emerald-400 bg-emerald-50 text-slate-900"
-													: "border-[#d8e3dc] bg-white text-slate-700 hover:bg-slate-50"
-											} ${
-												disabled
-													? "cursor-not-allowed opacity-35 hover:bg-white"
-													: ""
-											}`}
+											className={`
+												rounded-[14px]
+												border
+												px-2
+												py-3
+												text-center
+												text-sm
+												font-bold
+												tabular-nums
+												transition
+												sm:rounded-[16px]
+												sm:px-3
+												${
+													modal.value === score
+														? "border-emerald-400 bg-emerald-50 text-slate-900"
+														: "border-[#d8e3dc] bg-white text-slate-700 hover:bg-slate-50"
+												}
+												${disabled ? "cursor-not-allowed opacity-35 hover:bg-white" : ""}
+											`}
 										>
 											{score}
 										</button>
 									);
 								})}
 							</div>
-
-							{/* CONFIRM */}
 
 							<div className="mt-8">
 								<button
@@ -684,22 +827,42 @@ export default function TenThousandProtocol({
 
 										closeModal();
 									}}
-									className={`w-full rounded-[18px] px-5 py-5 text-[1.1rem] font-bold text-white transition ${
-										modalValueIsValid
-											? "bg-emerald-500 hover:bg-emerald-600"
-											: "bg-[#93d5bf]"
-									}`}
+									className={`
+										w-full
+										rounded-[18px]
+										px-5
+										py-4
+										text-base
+										font-black
+										text-white
+										transition
+										sm:py-5
+										sm:text-[1.1rem]
+										${
+											modalValueIsValid
+												? "bg-emerald-500 hover:bg-emerald-600"
+												: "cursor-not-allowed bg-[#93d5bf]"
+										}
+									`}
 								>
 									Bekräfta resultat
 								</button>
 							</div>
 
-							{/* CLOSE */}
-
 							<button
 								type="button"
 								onClick={closeModal}
-								className="absolute right-4 top-4 rounded-full p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+								className="
+									absolute
+									right-4
+									top-4
+									rounded-full
+									p-2
+									text-slate-400
+									transition
+									hover:bg-slate-100
+									hover:text-slate-700
+								"
 								aria-label="Stäng"
 							>
 								<X size={22} />
