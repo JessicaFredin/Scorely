@@ -1,5 +1,7 @@
 import type { CustomProtocolDefinition } from "../types/customProtocol";
 
+import { ScorelyCloudService } from "./ScorelyCloudService";
+
 const STORAGE_KEY = "scorely:custom-protocols";
 
 function normalizeProtocol(
@@ -58,7 +60,42 @@ function readProtocols(): CustomProtocolDefinition[] {
 }
 
 function writeProtocols(protocols: CustomProtocolDefinition[]) {
-	localStorage.setItem(STORAGE_KEY, JSON.stringify(protocols));
+	try {
+		localStorage.setItem(STORAGE_KEY, JSON.stringify(protocols));
+	} catch {
+		/*
+			Om localStorage är otillgängligt
+			ska appen fortfarande inte krascha.
+		*/
+	}
+}
+
+/*
+	Används både av vanlig save()
+	och av ScorelySyncService.
+
+	VIKTIGT:
+	Denna funktion skriver ENDAST lokalt.
+	Den anropar aldrig Supabase.
+*/
+function saveLocalOnlyInternal(protocol: CustomProtocolDefinition) {
+	const normalized = normalizeProtocol(protocol);
+
+	const protocols = readProtocols();
+
+	const existingIndex = protocols.findIndex(
+		(item) => item.id === normalized.id,
+	);
+
+	if (existingIndex === -1) {
+		protocols.push(normalized);
+	} else {
+		protocols[existingIndex] = normalized;
+	}
+
+	writeProtocols(protocols);
+
+	return normalized;
 }
 
 export const CustomProtocolService = {
@@ -74,39 +111,78 @@ export const CustomProtocolService = {
 		return readProtocols().find((protocol) => protocol.id === id) ?? null;
 	},
 
-	save(protocol: CustomProtocolDefinition) {
-		const protocols = readProtocols();
+	/*
+		=====================================================
+		SAVE
+		=====================================================
 
-		const existingIndex = protocols.findIndex(
-			(item) => item.id === protocol.id,
-		);
+		1. Sparar omedelbart i localStorage.
+		2. Försöker sedan synka till Supabase.
+		3. Om användaren är offline/utloggad
+		   finns datan fortfarande lokalt.
+	*/
 
+	save(protocol: CustomProtocolDefinition): CustomProtocolDefinition {
 		const now = new Date().toISOString();
 
 		const normalized = normalizeProtocol({
 			...protocol,
 
-			updatedAt: now,
-
 			createdAt: protocol.createdAt || now,
+
+			updatedAt: now,
 		});
 
-		if (existingIndex === -1) {
-			protocols.push(normalized);
-		} else {
-			protocols[existingIndex] = normalized;
-		}
+		const saved = saveLocalOnlyInternal(normalized);
 
-		writeProtocols(protocols);
+		void ScorelyCloudService.saveCustomProtocol(saved).catch(() => {
+			/*
+					Local save är redan klar.
+					Cloud kan synkas senare.
+				*/
+		});
 
-		return normalized;
+		return saved;
 	},
 
-	delete(id: string) {
+	/*
+		Används av ScorelySyncService.
+
+		Cloud-sync får INTE triggas här,
+		annars kan vi skapa sync-loopar.
+	*/
+
+	saveLocalOnly(
+		protocol: CustomProtocolDefinition,
+	): CustomProtocolDefinition {
+		return saveLocalOnlyInternal(normalizeProtocol(protocol));
+	},
+
+	/*
+		=====================================================
+		DELETE
+		=====================================================
+	*/
+
+	delete(id: string): void {
 		writeProtocols(
 			readProtocols().filter((protocol) => protocol.id !== id),
 		);
+
+		void ScorelyCloudService.deleteCustomProtocol(id).catch(() => {
+			/*
+					Om cloud-delete misslyckas
+					finns den åtminstone inte
+					lokalt längre.
+				*/
+		});
 	},
+
+	/*
+		=====================================================
+		DUPLICATE
+		=====================================================
+	*/
 
 	duplicate(id: string): CustomProtocolDefinition | null {
 		const source = this.getById(id);
@@ -138,7 +214,27 @@ export const CustomProtocolService = {
 		return this.save(duplicated);
 	},
 
-	clearAll() {
+	/*
+		=====================================================
+		CLEAR ALL
+		=====================================================
+	*/
+
+	clearAll(): void {
+		const protocols = readProtocols();
+
 		localStorage.removeItem(STORAGE_KEY);
+
+		/*
+			Ta även bort användarens
+			cloud-versioner om personen
+			är inloggad.
+		*/
+
+		for (const protocol of protocols) {
+			void ScorelyCloudService.deleteCustomProtocol(protocol.id).catch(
+				() => {},
+			);
+		}
 	},
 };

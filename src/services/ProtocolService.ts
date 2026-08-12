@@ -1,202 +1,13 @@
-// // // // // src/services/ProtocolService.ts
-// // // // export interface SavedProtocol {
-// // // // 	id: string;
-// // // // 	game: string;
-// // // // 	players: { name: string }[];
-// // // // 	scores: number[][];
-// // // // 	date: string;
-// // // // }
-
-// // // // export const ProtocolService = {
-// // // // 	getAll(): SavedProtocol[] {
-// // // // 		return JSON.parse(localStorage.getItem("savedProtocols") || "[]");
-// // // // 	},
-// // // // 	save(protocol: Omit<SavedProtocol, "id" | "date">) {
-// // // // 		const existing = ProtocolService.getAll();
-// // // // 		const newProtocol: SavedProtocol = {
-// // // // 			...protocol,
-// // // // 			id: crypto.randomUUID(),
-// // // // 			date: new Date().toISOString(),
-// // // // 		};
-// // // // 		existing.push(newProtocol);
-// // // // 		localStorage.setItem("savedProtocols", JSON.stringify(existing));
-// // // // 	},
-// // // // 	getById(id: string): SavedProtocol | undefined {
-// // // // 		return ProtocolService.getAll().find((p) => p.id === id);
-// // // // 	},
-// // // // 	delete(id: string) {
-// // // // 		const updated = ProtocolService.getAll().filter((p) => p.id !== id);
-// // // // 		localStorage.setItem("savedProtocols", JSON.stringify(updated));
-// // // // 	},
-// // // // };
-
-// // // import type { SavedProtocol } from "../types/savedProtocol";
-
-// // // export const ProtocolService = {
-// // // 	getAll(): SavedProtocol[] {
-// // // 		// load from localStorage or wherever
-// // // 		return JSON.parse(localStorage.getItem("protocols") || "[]");
-// // // 	},
-// // // 	save(protocol: Omit<SavedProtocol, "id" | "date">): void {
-// // // 		const protocols = ProtocolService.getAll();
-// // // 		const newProtocol: SavedProtocol = {
-// // // 			...protocol,
-// // // 			id: crypto.randomUUID(),
-// // // 			date: new Date().toISOString(),
-// // // 		};
-// // // 		localStorage.setItem(
-// // // 			"protocols",
-// // // 			JSON.stringify([...protocols, newProtocol])
-// // // 		);
-// // // 	},
-// // // 	getById(id: string): SavedProtocol | undefined {
-// // // 		return ProtocolService.getAll().find((p) => p.id === id);
-// // // 	},
-// // // 	delete(id: string): void {
-// // // 		const protocols = ProtocolService.getAll().filter((p) => p.id !== id);
-// // // 		localStorage.setItem("protocols", JSON.stringify(protocols));
-// // // 	},
-// // // };
-
-// // // import type { SavedProtocol } from "../types/savedProtocol";
-
-// // // const STORAGE_KEY = "savedProtocols";
-
-// // // export const ProtocolService = {
-// // // 	getAll(): SavedProtocol[] {
-// // // 		const stored = localStorage.getItem(STORAGE_KEY);
-// // // 		return stored ? JSON.parse(stored) : [];
-// // // 	},
-
-// // // 	getById(id: string): SavedProtocol | undefined {
-// // // 		return ProtocolService.getAll().find((p) => p.id === id);
-// // // 	},
-
-// // // 	save(protocol: SavedProtocol) {
-// // // 		const all = ProtocolService.getAll();
-// // // 		const updated = [...all.filter((p) => p.id !== protocol.id), protocol];
-// // // 		localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-// // // 	},
-
-// // // 	delete(id: string) {
-// // // 		const updated = ProtocolService.getAll().filter((p) => p.id !== id);
-// // // 		localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-// // // 	},
-// // // };
-
-// // import type { SavedProtocol } from "../types/savedProtocol";
-
-// // const STORAGE_KEY = "savedProtocols";
-
-// // export const ProtocolService = {
-// // 	getAll(): SavedProtocol[] {
-// // 		return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-// // 	},
-
-// // 	getById(id: string): SavedProtocol | null {
-// // 		const all = ProtocolService.getAll();
-// // 		return all.find((p) => p.id === id) || null;
-// // 	},
-
-// // 	save(protocol: SavedProtocol) {
-// // 		const all = ProtocolService.getAll();
-// // 		const index = all.findIndex((p) => p.id === protocol.id);
-// // 		if (index >= 0) {
-// // 			all[index] = protocol; // update
-// // 		} else {
-// // 			all.push(protocol); // new
-// // 		}
-// // 		localStorage.setItem(STORAGE_KEY, JSON.stringify(all));
-// // 	},
-
-// // 	delete(id: string) {
-// // 		const updated = ProtocolService.getAll().filter((p) => p.id !== id);
-// // 		localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-// // 	},
-// // };
-
-// import type { SavedProtocol } from "../types/savedProtocol";
-
-// const STORAGE_KEY = "savedProtocols";
-
-// function isSavedProtocol(value: unknown): value is SavedProtocol {
-// 	if (typeof value !== "object" || value === null) return false;
-
-// 	const candidate = value as Record<string, unknown>;
-
-// 	return (
-// 		typeof candidate.id === "string" &&
-// 		typeof candidate.gameId === "string" &&
-// 		typeof candidate.gameName === "string" &&
-// 		Array.isArray(candidate.players) &&
-// 		Array.isArray(candidate.values) &&
-// 		typeof candidate.createdAt === "string" &&
-// 		typeof candidate.updatedAt === "string" &&
-// 		(candidate.status === "Pågående" || candidate.status === "Avslutad") &&
-// 		(typeof candidate.winnerName === "string" ||
-// 			candidate.winnerName === null) &&
-// 		typeof candidate.route === "string"
-// 	);
-// }
-
-// export const ProtocolService = {
-// 	getAll(): SavedProtocol[] {
-// 		const raw = localStorage.getItem(STORAGE_KEY);
-// 		if (!raw) return [];
-
-// 		try {
-// 			const parsed: unknown = JSON.parse(raw);
-
-// 			if (!Array.isArray(parsed)) return [];
-
-// 			return parsed
-// 				.filter(isSavedProtocol)
-// 				.sort(
-// 					(a, b) =>
-// 						new Date(b.updatedAt).getTime() -
-// 						new Date(a.updatedAt).getTime(),
-// 				);
-// 		} catch {
-// 			return [];
-// 		}
-// 	},
-
-// 	getById(id: string): SavedProtocol | null {
-// 		return (
-// 			ProtocolService.getAll().find((protocol) => protocol.id === id) ??
-// 			null
-// 		);
-// 	},
-
-// 	save(protocol: SavedProtocol): void {
-// 		const all = ProtocolService.getAll();
-// 		const existingIndex = all.findIndex(
-// 			(existingProtocol) => existingProtocol.id === protocol.id,
-// 		);
-
-// 		if (existingIndex >= 0) {
-// 			all[existingIndex] = protocol;
-// 		} else {
-// 			all.unshift(protocol);
-// 		}
-
-// 		localStorage.setItem(STORAGE_KEY, JSON.stringify(all));
-// 	},
-
-// 	delete(id: string): void {
-// 		const updated = ProtocolService.getAll().filter(
-// 			(protocol) => protocol.id !== id,
-// 		);
-// 		localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-// 	},
-// };
-
 import type { SavedProtocol } from "../types/savedProtocol";
+
+import { ScorelyCloudService } from "./ScorelyCloudService";
 
 const STORAGE_KEY = "savedProtocols";
 
 function isSavedProtocol(value: unknown): value is SavedProtocol {
-	if (typeof value !== "object" || value === null) return false;
+	if (typeof value !== "object" || value === null) {
+		return false;
+	}
 
 	const candidate = value as Record<string, unknown>;
 
@@ -216,49 +27,136 @@ function isSavedProtocol(value: unknown): value is SavedProtocol {
 	);
 }
 
-export const ProtocolService = {
-	getAll(): SavedProtocol[] {
-		const raw = localStorage.getItem(STORAGE_KEY);
-		if (!raw) return [];
+function readAll(): SavedProtocol[] {
+	const raw = localStorage.getItem(STORAGE_KEY);
 
-		try {
-			const parsed: unknown = JSON.parse(raw);
+	if (!raw) {
+		return [];
+	}
 
-			if (!Array.isArray(parsed)) return [];
+	try {
+		const parsed: unknown = JSON.parse(raw);
 
-			return parsed
-				.filter(isSavedProtocol)
-				.sort(
-					(a, b) =>
-						new Date(b.updatedAt).getTime() -
-						new Date(a.updatedAt).getTime(),
-				);
-		} catch {
+		if (!Array.isArray(parsed)) {
 			return [];
 		}
+
+		return parsed.filter(isSavedProtocol);
+	} catch {
+		return [];
+	}
+}
+
+function writeAll(protocols: SavedProtocol[]) {
+	try {
+		localStorage.setItem(STORAGE_KEY, JSON.stringify(protocols));
+	} catch {
+		/*
+			Om localStorage inte går
+			att använda ska Scorely
+			inte krascha.
+		*/
+	}
+}
+
+/*
+	Används både av vanlig save()
+	och ScorelySyncService.
+
+	INGET cloud-anrop här.
+*/
+function saveLocalOnlyInternal(protocol: SavedProtocol): SavedProtocol {
+	const all = readAll();
+
+	const existingIndex = all.findIndex(
+		(existingProtocol) => existingProtocol.id === protocol.id,
+	);
+
+	if (existingIndex >= 0) {
+		all[existingIndex] = protocol;
+	} else {
+		all.unshift(protocol);
+	}
+
+	writeAll(all);
+
+	return protocol;
+}
+
+export const ProtocolService = {
+	getAll(): SavedProtocol[] {
+		return readAll().sort(
+			(a, b) =>
+				new Date(b.updatedAt).getTime() -
+				new Date(a.updatedAt).getTime(),
+		);
 	},
 
 	getById(id: string): SavedProtocol | null {
-		return this.getAll().find((protocol) => protocol.id === id) ?? null;
+		return readAll().find((protocol) => protocol.id === id) ?? null;
 	},
 
-	save(protocol: SavedProtocol): void {
-		const all = this.getAll();
-		const existingIndex = all.findIndex(
-			(existingProtocol) => existingProtocol.id === protocol.id,
-		);
+	/*
+		=====================================================
+		SAVE
+		=====================================================
 
-		if (existingIndex >= 0) {
-			all[existingIndex] = protocol;
-		} else {
-			all.unshift(protocol);
-		}
+		Spara lokalt först.
+		Supabase därefter.
+	*/
 
-		localStorage.setItem(STORAGE_KEY, JSON.stringify(all));
+	save(protocol: SavedProtocol): SavedProtocol {
+		const saved = saveLocalOnlyInternal(protocol);
+
+		void ScorelyCloudService.saveSavedProtocol(saved).catch(() => {
+			/*
+					Local save finns kvar.
+					Cloud kan synkas senare.
+				*/
+		});
+
+		return saved;
 	},
+
+	/*
+		Används av ScorelySyncService
+		för att skriva cloud-data till
+		localStorage utan en ny cloud-save.
+	*/
+
+	saveLocalOnly(protocol: SavedProtocol): SavedProtocol {
+		return saveLocalOnlyInternal(protocol);
+	},
+
+	/*
+		=====================================================
+		DELETE
+		=====================================================
+	*/
 
 	delete(id: string): void {
-		const updated = this.getAll().filter((protocol) => protocol.id !== id);
-		localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+		const updated = readAll().filter((protocol) => protocol.id !== id);
+
+		writeAll(updated);
+
+		void ScorelyCloudService.deleteSavedProtocol(id).catch(() => {});
+	},
+
+	/*
+		=====================================================
+		CLEAR ALL
+		=====================================================
+	*/
+
+	clearAll(): void {
+		const protocols = readAll();
+
+		localStorage.removeItem(STORAGE_KEY);
+
+		for (const protocol of protocols) {
+			void ScorelyCloudService.deleteSavedProtocol(protocol.id).catch(
+				() => {},
+			);
+		}
 	},
 };

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { useNavigate } from "react-router-dom";
 
@@ -11,19 +11,22 @@ import {
 	Spade,
 	Target,
 	Trash2,
+	UserRound,
 	X,
 } from "lucide-react";
 
 import MenuCard from "../components/MenuCard";
 import TrophyIcon from "../components/TrophyIcon";
 
+import { useAuth } from "../context/AuthContext";
 import { useGameSession } from "../context/GameSessionContext";
 
 import { games } from "../data/games";
 import { protocolRegistry } from "../data/protocolRegistry";
 
-import { ProtocolService } from "../services/ProtocolService";
 import { CustomGameService } from "../services/CustomGameService";
+import { ProtocolService } from "../services/ProtocolService";
+import { ScorelySyncService } from "../services/ScorelySyncService";
 
 import type { Game } from "../types/game";
 import type { SavedProtocol } from "../types/savedProtocol";
@@ -35,11 +38,103 @@ export default function Home() {
 
 	const { session, setSession } = useGameSession();
 
+	const { user, isAuthenticated, isLoading: isAuthLoading } = useAuth();
+
 	const [selectedCategory, setSelectedCategory] = useState<
 		null | Game["category"]
 	>(null);
 
 	const [pendingGame, setPendingGame] = useState<Game | null>(null);
+
+	/*
+		Används bara för att tvinga Home
+		att renderas igen efter cloud-sync.
+
+		Services skriver direkt till
+		localStorage och React vet annars
+		inte att localStorage ändrats.
+	*/
+	const [, setSyncRevision] = useState(0);
+
+	const syncedUserRef = useRef<string | null>(null);
+
+	/*
+		=====================================================
+		AUTOMATIC ACCOUNT SYNC
+		=====================================================
+
+		Om användaren redan har en giltig
+		Supabase-session när sidan öppnas
+		synkar vi automatiskt en gång.
+
+		Det gör att:
+
+		- ny telefon kan hämta cloud-data
+		- refresh kan hämta senaste data
+		- användaren behöver inte manuellt
+		  trycka "Synka nu"
+	*/
+
+	useEffect(() => {
+		if (isAuthLoading) {
+			return;
+		}
+
+		if (!isAuthenticated || !user?.id) {
+			syncedUserRef.current = null;
+
+			return;
+		}
+
+		if (syncedUserRef.current === user.id) {
+			return;
+		}
+
+		syncedUserRef.current = user.id;
+
+		void ScorelySyncService.syncAll()
+			.then(() => {
+				/*
+					Cloud-data har nu skrivits
+					till localStorage.
+
+					Render om Home så att t.ex.
+					aktiv match syns direkt.
+				*/
+
+				setSyncRevision((value) => value + 1);
+			})
+			.catch(() => {
+				/*
+					Lokal Scorely-data fungerar
+					fortfarande.
+
+					Vi tillåter ett nytt sync-
+					försök nästa gång komponenten
+					mountas.
+				*/
+
+				syncedUserRef.current = null;
+			});
+	}, [isAuthLoading, isAuthenticated, user?.id]);
+
+	/*
+		=====================================================
+		ACCOUNT DISPLAY
+		=====================================================
+	*/
+
+	const metadataDisplayName = user?.user_metadata?.display_name;
+
+	const displayName =
+		typeof metadataDisplayName === "string" &&
+		metadataDisplayName.trim().length > 0
+			? metadataDisplayName
+			: null;
+
+	const accountButtonText = isAuthenticated
+		? (displayName ?? "Mitt konto")
+		: "Logga in";
 
 	/*
 		=====================================================
@@ -56,11 +151,9 @@ export default function Home() {
 		REGULAR GAME
 		=====================================================
 
-		Om ett custom-spel är aktivt ska det gamla
-		GameSessionContext-spelet INTE visas som aktivt.
-
-		Det här är viktigt eftersom ett gammalt
-		"Egen poängtavla"-session annars kan ligga kvar.
+		Om ett custom-spel är aktivt ska
+		GameSessionContext-spelet INTE
+		samtidigt visas som aktivt.
 	*/
 
 	const hasActiveRegularGame = Boolean(
@@ -96,19 +189,21 @@ export default function Home() {
 
 	const startGame = (game: Game) => {
 		/*
-			Om vi lämnar ett custom-spel för att
-			starta ett vanligt spel ska custom-spelet
-			inte längre ligga som "aktivt".
+			Om vi lämnar ett custom-spel
+			för att starta ett vanligt spel
+			ska custom-spelet inte längre
+			vara markerat som aktivt.
 
-			Matchen ligger däremot fortfarande sparad
-			i CustomGameService.
+			Matchen finns fortfarande sparad.
 		*/
 
 		CustomGameService.clearActiveGame();
 
 		setSession({
 			game,
+
 			players: [],
+
 			status: "active",
 		});
 
@@ -117,8 +212,8 @@ export default function Home() {
 
 	const handleGameSelect = (game: Game) => {
 		/*
-			Om NÅGOT spel redan pågår – custom
-			eller vanligt – frågar vi först.
+			Om NÅGOT spel redan pågår
+			frågar vi användaren först.
 		*/
 
 		if (hasAnyActiveGame) {
@@ -126,11 +221,6 @@ export default function Home() {
 
 			return;
 		}
-
-		/*
-			Om ett gammalt vanligt spel är färdigt
-			kan dess tillfälliga localStorage tas bort.
-		*/
 
 		if (
 			hasFinishedRegularGame &&
@@ -235,11 +325,11 @@ export default function Home() {
 		/*
 				CUSTOM GAME
 
-				Custom-spelet autosparas redan efter varje
-				ändring. Därför behöver vi bara markera att
-				det inte längre är det aktiva spelet.
+				Custom-matchen autosparas
+				redan hela tiden.
 
-				Vi TAR INTE BORT matchen.
+				Vi säkerställer en sista save
+				och tar sedan bort active-state.
 			*/
 
 		if (activeCustomGame) {
@@ -286,11 +376,11 @@ export default function Home() {
 		}
 
 		/*
-				Om custom-spelet överges ska själva
-				pågående matchen tas bort.
+				Custom-matchen tas bort.
 
-				Den skapade PROTOKOLLMALLEN finns fortfarande
-				kvar under "Egna protokoll".
+				Själva custom-protokollets mall
+				finns fortfarande under
+				"Egna protokoll".
 			*/
 
 		if (activeCustomGame) {
@@ -298,11 +388,6 @@ export default function Home() {
 
 			CustomGameService.clearActiveGame();
 		}
-
-		/*
-				Gammalt vanligt spel:
-				ta bort tillfällig autosave.
-			*/
 
 		if (!activeCustomGame && session?.game && session.players.length > 0) {
 			removeGameValues(session.game, session.players);
@@ -329,29 +414,41 @@ export default function Home() {
 	}[] = [
 		{
 			key: "kortspel",
+
 			text: "Kortspel",
+
 			icon: Spade,
+
 			iconBg: "bg-emerald-500",
 		},
 
 		{
 			key: "golf",
+
 			text: "Golf",
+
 			icon: Target,
+
 			iconBg: "bg-amber-400",
 		},
 
 		{
 			key: "tärningsspel",
+
 			text: "Tärningsspel",
+
 			icon: Dice5,
+
 			iconBg: "bg-pink-500",
 		},
 
 		{
 			key: "anpassat",
+
 			text: "Anpassat",
+
 			icon: Settings,
+
 			iconBg: "bg-slate-200",
 		},
 	];
@@ -371,7 +468,9 @@ export default function Home() {
 			<section className="min-h-screen w-full bg-[radial-gradient(circle_at_top,_rgba(233,246,239,0.95)_0%,_rgba(219,239,226,0.96)_45%,_rgba(210,233,217,0.98)_100%)]">
 				<div className="flex min-h-screen w-full justify-center px-6 py-10 md:px-10 md:py-14">
 					<div className="flex w-full max-w-[580px] flex-col items-center">
-						{/* LOGO */}
+						{/* =================================================
+						    LOGO
+						================================================= */}
 
 						<div className="animate-fade-in-up">
 							<TrophyIcon />
@@ -390,6 +489,83 @@ export default function Home() {
 							<p className="mt-3 text-sm text-slate-500 md:text-base">
 								Ditt digitala protokoll för alla spel
 							</p>
+						</div>
+
+						{/* =================================================
+						    ACCOUNT BUTTON
+						================================================= */}
+
+						<div
+							className="animate-fade-in-up mt-6"
+							style={{
+								animationDelay: "0.18s",
+							}}
+						>
+							<button
+								type="button"
+								onClick={() =>
+									navigate(
+										isAuthenticated ? "/account" : "/auth",
+									)
+								}
+								className="
+									group
+									flex
+									items-center
+									gap-2.5
+									rounded-full
+									border
+									border-white/80
+									bg-white/65
+									px-3
+									py-2
+									pr-4
+									text-sm
+									font-black
+									text-slate-700
+									shadow-[0_5px_18px_rgba(0,0,0,0.04)]
+									backdrop-blur-sm
+									transition
+									hover:-translate-y-0.5
+									hover:bg-white/90
+									active:scale-[0.98]
+								"
+							>
+								<div
+									className={`
+										flex
+										h-8
+										w-8
+										items-center
+										justify-center
+										rounded-full
+										transition
+
+										${
+											isAuthenticated
+												? "bg-emerald-500 text-white"
+												: "bg-emerald-100 text-emerald-600"
+										}
+									`}
+								>
+									<UserRound size={17} />
+								</div>
+
+								<span>{accountButtonText}</span>
+
+								{isAuthenticated && (
+									<span
+										className="
+											h-2
+											w-2
+											rounded-full
+											bg-emerald-400
+											shadow-[0_0_0_3px_rgba(52,211,153,0.15)]
+										"
+										aria-label="Inloggad"
+									/>
+								)}
+							</button>
 						</div>
 
 						{/* =================================================
@@ -457,8 +633,6 @@ export default function Home() {
 
 						{/* =================================================
 						    ACTIVE REGULAR GAME
-
-						    VISAS ALDRIG samtidigt som custom game.
 						================================================= */}
 
 						{hasActiveRegularGame && session && (
@@ -610,7 +784,9 @@ export default function Home() {
 
 						<div className="my-8 h-px w-full bg-[#c9ddd1]" />
 
-						{/* SAVED PROTOCOLS */}
+						{/* =================================================
+						    SAVED PROTOCOLS
+						================================================= */}
 
 						<div className="w-full">
 							<MenuCard
@@ -692,7 +868,7 @@ export default function Home() {
 						</div>
 
 						<div className="mt-6 space-y-3">
-							{/* CONTINUE CURRENT */}
+							{/* CONTINUE */}
 
 							<button
 								type="button"
@@ -727,7 +903,7 @@ export default function Home() {
 								Fortsätt {currentGameName}
 							</button>
 
-							{/* SAVE & START NEW */}
+							{/* SAVE */}
 
 							<button
 								type="button"
