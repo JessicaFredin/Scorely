@@ -11,6 +11,11 @@ import SavedProtocols from "./pages/SavedProtocols";
 import ResumeProtocol from "./pages/ResumeProtocol";
 import ScorecardPage from "./pages/ScorecardPage";
 
+import CreateCustomProtocol from "./pages/CreateCustomProtocol";
+import CustomProtocols from "./pages/CustomProtocols";
+import CustomProtocolPlayers from "./pages/CustomProtocolPlayers";
+import PlayCustomProtocol from "./pages/PlayCustomProtocol";
+
 function App() {
 	return (
 		<BrowserRouter>
@@ -32,8 +37,6 @@ function App() {
 					element={<ResumeProtocol />}
 				/>
 
-				{/* SCORECARDS */}
-
 				<Route path="/game/chicago" element={<ScorecardPage />} />
 
 				<Route path="/game/500" element={<ScorecardPage />} />
@@ -52,9 +55,9 @@ function App() {
 
 				<Route path="/game/10000" element={<ScorecardPage />} />
 
-				<Route path="/game/gigant-yatzy" element={<ScorecardPage />} />
+				<Route path="/game/maxi-yatzy" element={<ScorecardPage />} />
 
-				{/* WHIST */}
+				<Route path="/game/gigant-yatzy" element={<ScorecardPage />} />
 
 				<Route path="/game/4-manswhist" element={<ScorecardPage />} />
 
@@ -62,8 +65,28 @@ function App() {
 
 				<Route path="/game/30" element={<ScorecardPage />} />
 
-				<Route path="/game/maxi-yatzy" element={<ScorecardPage />} />
-				
+				<Route path="/custom-protocols" element={<CustomProtocols />} />
+
+				<Route
+					path="/create-custom-protocol"
+					element={<CreateCustomProtocol />}
+				/>
+
+				<Route
+					path="/custom-protocol/:id/players"
+					element={<CustomProtocolPlayers />}
+				/>
+
+				<Route
+					path="/custom-match/:matchId"
+					element={<PlayCustomProtocol />}
+				/>
+
+				<Route
+					path="/custom-protocol/:id/edit"
+					element={<CreateCustomProtocol />}
+				/>
+
 				<Route path="*" element={<NotFound />} />
 			</Routes>
 		</BrowserRouter>
