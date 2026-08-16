@@ -18,7 +18,7 @@ import {
 import MenuCard from "../components/MenuCard";
 import TrophyIcon from "../components/TrophyIcon";
 
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../hooks/useAuth";
 import { useGameSession } from "../context/GameSessionContext";
 
 import { games } from "../data/games";

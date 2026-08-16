@@ -4,7 +4,7 @@ import { ArrowLeft, Eye, EyeOff, LockKeyhole, Mail, User } from "lucide-react";
 
 import { useNavigate } from "react-router-dom";
 
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../hooks/useAuth";
 
 import { ScorelySyncService } from "../services/ScorelySyncService";
 
