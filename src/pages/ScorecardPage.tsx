@@ -1,14 +1,20 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+
 import { useNavigate } from "react-router-dom";
 
 import ScorecardLayout from "../components/scorecard/ScorecardLayout";
+
 import { useGameSession } from "../context/GameSessionContext";
+
 import { protocolRegistry } from "../data/protocolRegistry";
+
 import { ProtocolService } from "../services/ProtocolService";
 
 import type { SavedProtocol } from "../types/savedProtocol";
 
 import { getGameStorageKey } from "../utils/gameStorage";
+
+import { createRegularShareUrl } from "../utils/protocolShare";
 
 type ScoreCellValue = number | "";
 
@@ -67,6 +73,7 @@ function getChicagoWinner(
 		if (total >= 52 && hasSaidChicago(events)) {
 			return {
 				name: players[i].name,
+
 				message: `Grattis! ${players[i].name} har vunnit spelet, ${total} poäng.`,
 			};
 		}
@@ -89,6 +96,7 @@ function getFiveHundredWinner(
 		if (total >= 500) {
 			return {
 				name: players[i].name,
+
 				message: `Grattis! ${players[i].name} har vunnit spelet, ${total} poäng.`,
 			};
 		}
@@ -166,6 +174,7 @@ function getPlumpWinner(
 
 		return {
 			name: winnerName,
+
 			message: `Grattis! ${winnerName} har vunnit spelet med ${highestScore} poäng.`,
 		};
 	}
@@ -182,11 +191,7 @@ function getLowestScoreWinner(
 	players: { name: string }[],
 	values: ScoreCellValue[][],
 ) {
-	if (players.length === 0) {
-		return null;
-	}
-
-	if (values.length === 0) {
+	if (players.length === 0 || values.length === 0) {
 		return null;
 	}
 
@@ -219,6 +224,7 @@ function getLowestScoreWinner(
 
 		return {
 			name: winnerName,
+
 			message: `Grattis! ${winnerName} har vunnit spelet med ${lowestScore} poäng.`,
 		};
 	}
@@ -229,6 +235,7 @@ function getLowestScoreWinner(
 
 	return {
 		name: tiedNames,
+
 		message: `Oavgjort! ${tiedNames} vann med ${lowestScore} poäng.`,
 	};
 }
@@ -275,24 +282,20 @@ function getWhistWinner(
 
 	return {
 		name: winnerName,
+
 		message: `Grattis! ${winnerName} har vunnit whisten med ${totals[winnerSide]} poäng.`,
 	};
 }
 
 /* =========================================================
    HIGHEST SCORE WINS
-   Jazz / Gigant Yatzy
 ========================================================= */
 
 function getHighestScoreWinner(
 	players: { name: string }[],
 	values: ScoreCellValue[][],
 ) {
-	if (players.length === 0) {
-		return null;
-	}
-
-	if (values.length === 0) {
+	if (players.length === 0 || values.length === 0) {
 		return null;
 	}
 
@@ -325,6 +328,7 @@ function getHighestScoreWinner(
 
 		return {
 			name: winnerName,
+
 			message: `Grattis! ${winnerName} har vunnit spelet med ${highestScore} poäng.`,
 		};
 	}
@@ -335,6 +339,7 @@ function getHighestScoreWinner(
 
 	return {
 		name: tiedNames,
+
 		message: `Oavgjort! ${tiedNames} vann med ${highestScore} poäng.`,
 	};
 }
@@ -384,6 +389,7 @@ function getTrebellerWinner(
 
 		return {
 			name: winnerName,
+
 			message: `Grattis! ${winnerName} har vunnit spelet med ${
 				highestScore > 0 ? `+${highestScore}` : highestScore
 			} poäng.`,
@@ -392,6 +398,7 @@ function getTrebellerWinner(
 
 	return {
 		name: null,
+
 		message: `Spelet slutade oavgjort på ${
 			highestScore > 0 ? `+${highestScore}` : highestScore
 		} poäng.`,
@@ -406,11 +413,7 @@ function getYatzyWinner(
 	players: { name: string }[],
 	values: ScoreCellValue[][],
 ) {
-	if (players.length === 0) {
-		return null;
-	}
-
-	if (values.length === 0) {
+	if (players.length === 0 || values.length === 0) {
 		return null;
 	}
 
@@ -459,6 +462,7 @@ function getYatzyWinner(
 
 		return {
 			name: winnerName,
+
 			message: `Grattis! ${winnerName} har vunnit spelet med ${highestScore} poäng.`,
 		};
 	}
@@ -469,6 +473,7 @@ function getYatzyWinner(
 
 	return {
 		name: tiedNames,
+
 		message: `Oavgjort! ${tiedNames} vann med ${highestScore} poäng.`,
 	};
 }
@@ -512,6 +517,7 @@ function getTenThousandWinner(
 
 		return {
 			name: winnerName,
+
 			message: `Grattis! ${winnerName} har vunnit spelet med ${highestScore} poäng.`,
 		};
 	}
@@ -522,6 +528,7 @@ function getTenThousandWinner(
 
 	return {
 		name: tiedNames,
+
 		message: `Oavgjort! ${tiedNames} vann med ${highestScore} poäng.`,
 	};
 }
@@ -538,24 +545,16 @@ function getThirtyWinner(
 		return null;
 	}
 
-	const remaining = players.map(
-		(_, playerIndex) =>
-			values.reduce(
-				(points, row) => {
-					const value =
-						row[playerIndex];
+	const remaining = players.map((_, playerIndex) =>
+		values.reduce((points, row) => {
+			const value = row[playerIndex];
 
-					return Math.max(
-						0,
-						points +
-							(typeof value ===
-							"number"
-								? value
-								: 0),
-					);
-				},
-				30,
-			),
+			return Math.max(
+				0,
+
+				points + (typeof value === "number" ? value : 0),
+			);
+		}, 30),
 	);
 
 	const activePlayers = remaining
@@ -563,25 +562,19 @@ function getThirtyWinner(
 			points,
 			index,
 		}))
-		.filter(
-			(item) =>
-				item.points > 0,
-		);
+		.filter((item) => item.points > 0);
 
-	if (
-		activePlayers.length !== 1
-	) {
+	if (activePlayers.length !== 1) {
 		return null;
 	}
 
-	const winnerIndex =
-		activePlayers[0].index;
+	const winnerIndex = activePlayers[0].index;
 
-	const winnerName =
-		players[winnerIndex].name;
+	const winnerName = players[winnerIndex].name;
 
 	return {
 		name: winnerName,
+
 		message: `Grattis! ${winnerName} har vunnit 30 med ${remaining[winnerIndex]} poäng kvar.`,
 	};
 }
@@ -633,15 +626,6 @@ export default function ScorecardPage() {
 		}
 	}, [session?.protocolId, session?.protocolCreatedAt]);
 
-	/*
-		If this session doesn't yet have a
-		protocolId, save the generated ID
-		into GameSessionContext.
-
-		This means a reload keeps using
-		the same saved protocol.
-	*/
-
 	useEffect(() => {
 		if (!session || !game || players.length === 0) {
 			return;
@@ -678,6 +662,111 @@ export default function ScorecardPage() {
 	const hasLoadedInitialValuesRef = useRef(false);
 
 	const hasUserMadeChangeRef = useRef(false);
+
+	/* =====================================================
+	   TOAST
+	===================================================== */
+
+	const showToast = (text: string) => {
+		const id = ++toastIdRef.current;
+
+		setToasts((prev) => [
+			...prev,
+			{
+				id,
+				text,
+			},
+		]);
+
+		window.setTimeout(() => {
+			setToasts((prev) => prev.filter((toast) => toast.id !== id));
+		}, 2600);
+	};
+
+	/* =====================================================
+	   SHARE
+	===================================================== */
+
+	const handleShare = async () => {
+		if (!game || players.length === 0) {
+			return;
+		}
+
+		const url = createRegularShareUrl({
+			gameId: String(game.id),
+
+			players: players.map((player) => ({
+				name: player.name,
+			})),
+
+			values: cloneValues(values),
+		});
+
+		try {
+			/*
+					Mobile Safari / Chrome etc.
+
+					This opens the native share
+					sheet where the user can choose
+					WhatsApp, Messenger, Messages,
+					Mail, copy link, etc.
+				*/
+
+			if (typeof navigator.share === "function") {
+				await navigator.share({
+					title: `${game.name} – Scorely`,
+
+					text: `Se mitt ${game.name}-protokoll i Scorely.`,
+
+					url,
+				});
+
+				return;
+			}
+
+			/*
+					Desktop fallback:
+					copy the URL.
+				*/
+
+			if (navigator.clipboard?.writeText) {
+				await navigator.clipboard.writeText(url);
+
+				showToast("Delningslänken har kopierats!");
+
+				return;
+			}
+
+			/*
+					Extra fallback if clipboard API
+					isn't available.
+				*/
+
+			const textarea = document.createElement("textarea");
+
+			textarea.value = url;
+
+			textarea.style.position = "fixed";
+
+			textarea.style.opacity = "0";
+
+			document.body.appendChild(textarea);
+
+			textarea.select();
+
+			document.execCommand("copy");
+
+			document.body.removeChild(textarea);
+
+			showToast("Delningslänken har kopierats!");
+		} catch (error) {
+			if (error instanceof DOMException && error.name === "AbortError") {
+				return;
+			}
+
+			showToast("Kunde inte dela protokollet.");
+		}
+	};
 
 	/* =====================================================
 	   WINNER
@@ -736,33 +825,12 @@ export default function ScorecardPage() {
 			return getHighestScoreWinner(players, values);
 		}
 
-
 		return null;
 	}, [game, gameId, players, values]);
 
 	const winnerMessage = winner?.message ?? "";
 
 	const isProtocolLocked = winnerMessage !== "";
-
-	/* =====================================================
-	   TOAST
-	===================================================== */
-
-	const showToast = (text: string) => {
-		const id = ++toastIdRef.current;
-
-		setToasts((prev) => [
-			...prev,
-			{
-				id,
-				text,
-			},
-		]);
-
-		window.setTimeout(() => {
-			setToasts((prev) => prev.filter((toast) => toast.id !== id));
-		}, 2600);
-	};
 
 	/* =====================================================
 	   BUILD SAVED PROTOCOL
@@ -864,6 +932,7 @@ export default function ScorecardPage() {
 
 		if (!game || !protocolEntry || players.length === 0) {
 			setValues([]);
+
 			setHistory([]);
 
 			announcedWinnerRef.current = "";
@@ -912,13 +981,13 @@ export default function ScorecardPage() {
 		try {
 			const parsed: unknown = JSON.parse(raw);
 
-		const hasDynamicRows = gameId === "10000" || gameId === "30";
+			const hasDynamicRows = gameId === "10000" || gameId === "30";
 
-		const hasValidRowCount = hasDynamicRows
-			? Array.isArray(parsed) && parsed.length >= fallbackValues.length
-			: Array.isArray(parsed) && parsed.length === fallbackValues.length;
-			
-					
+			const hasValidRowCount = hasDynamicRows
+				? Array.isArray(parsed) &&
+					parsed.length >= fallbackValues.length
+				: Array.isArray(parsed) &&
+					parsed.length === fallbackValues.length;
 
 			if (
 				hasValidRowCount &&
@@ -941,7 +1010,7 @@ export default function ScorecardPage() {
 				return;
 			}
 		} catch {
-			// ignore broken localStorage data
+			// Ignore broken localStorage.
 		}
 
 		setValues(fallbackValues);
@@ -957,14 +1026,6 @@ export default function ScorecardPage() {
 
 	/* =====================================================
 	   AUTOSAVE
-
-	   Runs whenever values changes.
-
-	   This is NOT the same thing as
-	   pressing "Spara".
-
-	   Autosave protects the currently
-	   active game against reload.
 	===================================================== */
 
 	useEffect(() => {
@@ -979,19 +1040,12 @@ export default function ScorecardPage() {
 		try {
 			localStorage.setItem(storageKey, JSON.stringify(values));
 		} catch {
-			/*
-				If localStorage is unavailable,
-				the game should still work.
-			*/
+			// Game still works.
 		}
 	}, [storageKey, values]);
 
 	/* =====================================================
-	   ACTIVE / FINISHED SESSION STATUS
-
-	   This is what prevents a completed
-	   game from appearing as "Pågående spel"
-	   on Home.
+	   SESSION STATUS
 	===================================================== */
 
 	useEffect(() => {
@@ -1007,12 +1061,13 @@ export default function ScorecardPage() {
 
 		setSession({
 			...session,
+
 			status: nextStatus,
 		});
 	}, [players.length, session, setSession, winnerMessage]);
 
 	/* =====================================================
-	   WINNER ANNOUNCEMENT + AUTO SAVE FINISHED PROTOCOL
+	   WINNER + AUTO SAVE
 	===================================================== */
 
 	useEffect(() => {
@@ -1033,17 +1088,6 @@ export default function ScorecardPage() {
 		announcedWinnerRef.current = winnerMessage;
 
 		showToast(winnerMessage);
-
-		/*
-			Don't automatically create a
-			SavedProtocol simply because an
-			old finished game was restored
-			from localStorage.
-
-			Only save automatically if this
-			game was actually changed during
-			this session.
-		*/
 
 		if (!hasUserMadeChangeRef.current) {
 			return;
@@ -1220,34 +1264,17 @@ export default function ScorecardPage() {
 
 		setValues(resetValues);
 
-		/*
-			Remove the existing autosave.
-
-			The autosave effect will then
-			store the newly reset empty
-			values as the current state.
-		*/
-
 		if (storageKey) {
 			try {
 				localStorage.removeItem(storageKey);
 			} catch {
-				// Ignore storage error.
+				// Ignore.
 			}
 		}
 	};
 
 	/* =====================================================
 	   MANUAL SAVE
-
-	   This is different from autosave.
-
-	   Autosave:
-	   protects the active game.
-
-	   Manual save:
-	   adds/updates it under
-	   "Sparade protokoll".
 	===================================================== */
 
 	const handleSave = () => {
@@ -1256,7 +1283,11 @@ export default function ScorecardPage() {
 		}
 
 		try {
-			localStorage.setItem(storageKey, JSON.stringify(values));
+			localStorage.setItem(
+				storageKey,
+
+				JSON.stringify(values),
+			);
 		} catch {
 			// Game still works.
 		}
@@ -1281,6 +1312,7 @@ export default function ScorecardPage() {
 			onUndo={handleUndo}
 			isUndoDisabled={history.length === 0}
 			onReset={handleReset}
+			onShare={handleShare}
 			onSave={handleSave}
 			isSaveDisabled={false}
 			toasts={toasts}

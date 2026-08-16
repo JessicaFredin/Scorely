@@ -19,11 +19,14 @@ import PlayCustomProtocol from "./pages/PlayCustomProtocol";
 import { AuthProvider } from "./context/AuthContext";
 import AccountPage from "./pages/AccountPage";
 import AuthPage from "./pages/AuthPage";
+import ScrollToTop from "./components/ScrollToTop";
+import SharedProtocolPage from "./pages/SharedProtocolPage";
 
 function App() {
 	return (
 		<AuthProvider>
 			<BrowserRouter>
+				<ScrollToTop />
 				<Routes>
 					<Route path="/" element={<Home />} />
 
@@ -115,6 +118,8 @@ function App() {
 					<Route path="/auth" element={<AuthPage />} />
 
 					<Route path="/account" element={<AccountPage />} />
+
+					<Route path="/share" element={<SharedProtocolPage />} />
 				</Routes>
 			</BrowserRouter>
 		</AuthProvider>
